@@ -41,19 +41,24 @@ const ChapterSchema: Schema = new Schema({
   projectId: {
     type: Schema.Types.ObjectId,
     ref: 'Project',
-    required: true
+    required: [true, 'Project ID is required']
   },
   title: {
     type: String,
-    required: true,
-    trim: true
+    required: [true, 'Chapter title is required'],
+    trim: true,
+    maxlength: [100, 'Chapter title cannot exceed 100 characters']
   },
   position: {
     type: Number,
-    required: true
+    required: [true, 'Chapter position is required'],
+    min: [0, 'Chapter position must be a positive number']
   },
   synopsis: {
     type: String,
+    required: [true, 'Chapter synopsis is required'],
+    trim: true,
+    maxlength: [1000, 'Chapter synopsis cannot exceed 1000 characters'],
     default: ''
   },
   content: {
@@ -62,7 +67,10 @@ const ChapterSchema: Schema = new Schema({
   },
   status: {
     type: String,
-    enum: ['Draft', 'Revised', 'Final', 'Needs Review'],
+    enum: {
+      values: ['Draft', 'Revised', 'Final', 'Needs Review'],
+      message: 'Status must be Draft, Revised, Final, or Needs Review'
+    },
     default: 'Draft'
   },
   wordCount: {
@@ -110,14 +118,25 @@ const ChapterSchema: Schema = new Schema({
     },
     userId: {
       type: Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
+      required: true
     },
     changes: {
-      type: String
+      type: String,
+      required: true
     }
   }]
 }, {
   timestamps: true
+});
+
+// Pre-save hook to calculate word count
+ChapterSchema.pre('save', function(next) {
+  if (this.content) {
+    const content = this.content as string;
+    this.wordCount = content.split(/\s+/).filter((word: string) => word.length > 0).length;
+  }
+  next();
 });
 
 // Index for faster query by project and position

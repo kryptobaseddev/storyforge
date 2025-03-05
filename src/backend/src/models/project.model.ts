@@ -7,30 +7,51 @@
 
 import mongoose, { Schema, Document } from 'mongoose';
 
+// Define type literals to match the Zod schema
+export type GenreType = 'fantasy' | 'science fiction' | 'mystery' | 
+                      'adventure' | 'historical fiction' | 'realistic fiction' | 
+                      'horror' | 'comedy' | 'drama' | 'fairy tale' | 'fable' | 'superhero';
+
+export type TargetAudienceType = 'children' | 'middle grade' | 'young adult' | 'adult';
+
+export type NarrativeType = 'Short Story' | 'Novel' | 'Screenplay' | 'Comic' | 'Poem';
+
+export type ToneType = 'Serious' | 'Humorous' | 'Educational' | 'Dramatic' | 'Neutral' | 'Uplifting';
+
+export type StyleType = 'Descriptive' | 'Dialogue-heavy' | 'Action-oriented' | 'Poetic' | 'Neutral';
+
+export type StatusType = 'Draft' | 'In Progress' | 'Completed' | 'Archived';
+
+export type TargetLengthType = 'Words' | 'Pages' | 'Chapters';
+
+export type CollaboratorRoleType = 'Editor' | 'Viewer' | 'Contributor';
+
 // Interface for Project document
 export interface IProject extends Document {
   userId: mongoose.Types.ObjectId;
   title: string;
   description: string;
-  genre: string;
-  targetAudience: string;
-  narrativeType: string;
-  status: string;
-  tone: string;
-  style: string;
+  genre: GenreType;
+  targetAudience: TargetAudienceType;
+  narrativeType: NarrativeType;
+  status: StatusType;
+  tone: ToneType;
+  style: StyleType;
   targetLength: {
-    type: string;
+    type: TargetLengthType;
     value: number;
   };
   collaborators: Array<{
     userId: mongoose.Types.ObjectId;
-    role: string;
+    role: CollaboratorRoleType;
   }>;
   metadata: {
     createdWithTemplate: boolean;
     templateId?: mongoose.Types.ObjectId;
     tags: string[];
   };
+  completionDate?: Date;
+  isPublic?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -129,6 +150,14 @@ const ProjectSchema: Schema = new Schema({
       type: String,
       trim: true
     }]
+  },
+  completionDate: {
+    type: Date,
+    default: null
+  },
+  isPublic: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

@@ -4,15 +4,16 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { createExpressMiddleware } from '@trpc/server/adapters/express';
+import { createOpenApiExpressMiddleware } from 'trpc-openapi';
+import swaggerUi from 'swagger-ui-express';
 
-// Import routes
-import aiRoutes from './routes/ai.routes';
-import projectRoutes from './routes/project.routes';
-import characterRoutes from './routes/character.routes';
-import settingRoutes from './routes/setting.routes';
-import plotRoutes from './routes/plot.routes';
-import chapterRoutes from './routes/chapter.routes';
-import exportRoutes from './routes/export.routes';
+// Import tRPC router and context
+import { appRouter } from './routers/_app';
+import { createTRPCContext } from './trpc';
+
+// Import OpenAPI document
+import { openApiDocument } from './openapi';
 
 // Load environment variables
 dotenv.config();
@@ -149,14 +150,26 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to StoryForge API' });
 });
 
-// API Routes
-app.use('/api/ai', aiRoutes);
-app.use('/api/projects', projectRoutes);
-app.use('/api/projects/:projectId/characters', characterRoutes);
-app.use('/api/projects/:projectId/settings', settingRoutes);
-app.use('/api/projects/:projectId/plots', plotRoutes);
-app.use('/api/projects/:projectId/chapters', chapterRoutes);
-app.use('/api/projects/:projectId/exports', exportRoutes);
+// tRPC API endpoint
+app.use(
+  '/api/trpc',
+  createExpressMiddleware({
+    router: appRouter,
+    createContext: createTRPCContext,
+  })
+);
+
+// OpenAPI/REST compatibility layer
+app.use(
+  '/api',
+  createOpenApiExpressMiddleware({
+    router: appRouter,
+    createContext: createTRPCContext,
+  })
+);
+
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

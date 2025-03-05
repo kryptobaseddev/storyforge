@@ -20,9 +20,9 @@
 ┌───────────────────────────▼─────────────────────────────────┐
 │                    Express Backend                          │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   REST      │  │  Auth       │  │  AI Integration     │  │
-│  │   API       │◄─┤  System     │◄─┤  Service            │  │
-│  │             │  │  (JWT)      │  │                     │  │
+│  │   tRPC      │  │  Auth       │  │  AI Integration     │  │
+│  │   Routers   │◄─┤  System     │◄─┤  Service            │  │
+│  │ + OpenAPI   │  │  (JWT)      │  │                     │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 └───────────────────────────┬─────────────────────────────────┘
                             │
@@ -48,31 +48,32 @@
 ## Data Flow
 
 1. User interacts with React UI components
-2. Frontend sends requests to Express backend API
+2. Frontend sends requests to Express backend using tRPC procedures
 3. Backend authenticates requests using JWT
 4. Backend processes requests and interacts with MongoDB
 5. For AI-related features, backend communicates with external AI services
-6. Results flow back through the stack to the user interface
+6. Results flow back through the stack to the user interface with full type safety
 
 ## Technology Stack
 
 ### Frontend
 - **Framework**: React
 - **State Management**: Redux
+- **API Communication**: tRPC client with React Query
 - **Styling**: Tailwind CSS
 - **Component Library**: shadcn/UI (based on Radix UI)
 - **Rich Text Editing**: TipTap (based on ProseMirror)
 - **Visualization**: D3.js for relationship mapping
-- **API Communication**: Axios
 - **Build Tools**: Vite
 
 ### Backend
 - **Framework**: Node.js with Express
+- **API Architecture**: tRPC with OpenAPI/Swagger generation
 - **Authentication**: JWT (JSON Web Tokens)
-- **Validation**: Joi/Zod
-- **Middleware**: CORS, Helmet, Morgan
+- **Validation**: Zod (integrated with tRPC)
+- **Middleware**: tRPC middleware, CORS, Helmet, Morgan
 - **File Handling**: Multer
-- **API Documentation**: Swagger/OpenAPI
+- **API Documentation**: OpenAPI/Swagger (generated from tRPC)
 
 ### Database
 - **Database**: MongoDB
@@ -95,17 +96,17 @@
 ### Security
 - JWT-based authentication
 - HTTPS for all communications
-- Input validation and sanitization
+- Input validation with Zod schema validation
 - Protection against common web vulnerabilities
 
 ### Performance
 - Efficient database queries
 - Optimized AI token usage
-- Frontend performance optimization
+- Frontend performance optimization with React Query caching
 - Caching strategies
 
 ### Scalability
-- Modular architecture for easy expansion
+- Modular tRPC router architecture for easy expansion
 - Stateless backend for horizontal scaling
 - Efficient database indexing
 - Chunking large narratives for processing

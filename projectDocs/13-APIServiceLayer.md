@@ -1,10 +1,10 @@
 # StoryForge - API Service Layer
 
-This document outlines the API service layer for the StoryForge frontend application, detailing the service files, methods, and their integration with the backend.
+This document outlines the API service layer for the StoryForge frontend application, detailing the service files, methods, and their integration with the backend using tRPC.
 
 ## Table of Contents
 1. [Overview](#overview)
-2. [Base API Service](#base-api-service)
+2. [tRPC Client Setup](#trpc-client-setup)
 3. [Authentication Service](#authentication-service)
 4. [Project Service](#project-service)
 5. [Character Service](#character-service)
@@ -18,574 +18,935 @@ This document outlines the API service layer for the StoryForge frontend applica
 
 ## Overview
 
-The API service layer acts as an intermediary between the frontend components and the backend API. It provides a clean, abstracted interface for making API calls, handling responses, and managing errors. This layer is organized into service modules, each responsible for a specific domain of functionality.
+The API service layer acts as an intermediary between the frontend components and the backend API. By using tRPC, we gain end-to-end type safety with minimal boilerplate. This layer is organized as a combination of tRPC hooks and additional utility functions to manage caching, optimistic updates, and other frontend-specific concerns.
 
 ### Directory Structure
 
 ```
 src/
 └── services/
-    ├── api.ts                  # Base API configuration
-    ├── auth.service.ts         # Authentication-related API calls
-    ├── project.service.ts      # Project-related API calls
-    ├── character.service.ts    # Character-related API calls
-    ├── setting.service.ts      # Setting-related API calls
-    ├── plot.service.ts         # Plot-related API calls
-    ├── chapter.service.ts      # Chapter-related API calls
-    ├── export.service.ts       # Export-related API calls
-    ├── ai.service.ts           # AI generation API calls
-    └── types/                  # TypeScript interfaces for API requests/responses
+    ├── trpc.ts                 # tRPC client configuration
+    ├── hooks/                  # Custom React hooks wrapping tRPC procedures
+    │   ├── auth.hooks.ts       # Authentication-related hooks
+    │   ├── project.hooks.ts    # Project-related hooks
+    │   ├── character.hooks.ts  # Character-related hooks
+    │   ├── setting.hooks.ts    # Setting-related hooks
+    │   ├── plot.hooks.ts       # Plot-related hooks
+    │   ├── chapter.hooks.ts    # Chapter-related hooks
+    │   ├── export.hooks.ts     # Export-related hooks
+    │   └── ai.hooks.ts         # AI generation hooks
+    └── types/                  # Shared TypeScript type definitions
         ├── auth.types.ts
         ├── project.types.ts
         └── ...
 ```
 
-## Base API Service
+## tRPC Client Setup
 
-The base API service (`api.ts`) provides the foundation for all API calls, including configuration for Axios, request interceptors for authentication, and response interceptors for error handling.
+The tRPC client setup provides the foundation for all API calls, with type safety and React Query integration.
 
-### File: `src/services/api.ts`
+### File: `src/services/trpc.ts`
 
 ```typescript
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import { createTRPCReact } from '@trpc/react-query';
+import { httpBatchLink, loggerLink } from '@trpc/client';
+import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+import superjson from 'superjson';
+import type { AppRouter } from '@server/routers/_app';
 
 // API base URL from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-// Create Axios instance with default config
-const api: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 30000, // 30 seconds
-});
+// Create tRPC React hooks
+export const trpc = createTRPCReact<AppRouter>();
 
-// Request interceptor for adding auth token
-api.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
-    const token = localStorage.getItem('token');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  }
-);
+// Type inference helpers
+export type RouterInput = inferRouterInputs<AppRouter>;
+export type RouterOutput = inferRouterOutputs<AppRouter>;
 
-// Response interceptor for handling common errors
-api.interceptors.response.use(
-  (response: AxiosResponse) => response,
-  (error: AxiosError) => {
-    // Handle authentication errors
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-    
-    // Handle server errors
-    if (error.response?.status === 500) {
-      console.error('Server error:', error);
-    }
-    
-    return Promise.reject(error);
-  }
-);
-
-// Helper methods for common HTTP methods
-export const apiService = {
-  get: <T>(url: string, config?: AxiosRequestConfig) => 
-    api.get<T>(url, config).then(response => response.data),
-    
-  post: <T>(url: string, data?: any, config?: AxiosRequestConfig) => 
-    api.post<T>(url, data, config).then(response => response.data),
-    
-  put: <T>(url: string, data?: any, config?: AxiosRequestConfig) => 
-    api.put<T>(url, data, config).then(response => response.data),
-    
-  delete: <T>(url: string, config?: AxiosRequestConfig) => 
-    api.delete<T>(url, config).then(response => response.data),
-    
-  patch: <T>(url: string, data?: any, config?: AxiosRequestConfig) => 
-    api.patch<T>(url, data, config).then(response => response.data),
+// Create tRPC client
+export const createTRPCClient = (getToken: () => string | null) => {
+  return {
+    links: [
+      loggerLink({
+        enabled: (opts) => process.env.NODE_ENV === 'development' || (opts.direction === 'down' && opts.result instanceof Error),
+      }),
+      httpBatchLink({
+        url: API_BASE_URL,
+        headers: () => {
+          const token = getToken();
+          return token ? { Authorization: `Bearer ${token}` } : {};
+        },
+      }),
+    ],
+    transformer: superjson,
+  };
 };
 
-export default api;
+// tRPC Provider setup for React app
+export function TRPCProvider({ children }: { children: React.ReactNode }) {
+  const getToken = () => localStorage.getItem('token');
+  const [trpcClient] = React.useState(() => trpc.createClient(createTRPCClient(getToken)));
+
+  return (
+    <trpc.Provider client={trpcClient}>
+      {children}
+    </trpc.Provider>
+  );
+}
 ```
 
 ## Authentication Service
 
-The authentication service handles user registration, login, logout, and profile management.
+The authentication service handles user registration, login, logout, and profile management using tRPC procedures.
 
-### File: `src/services/auth.service.ts`
+### File: `src/services/hooks/auth.hooks.ts`
 
 ```typescript
-import { apiService } from './api';
-import { 
-  LoginRequest, 
-  RegisterRequest, 
-  AuthResponse, 
-  UserProfile, 
-  PasswordChangeRequest,
-  ForgotPasswordRequest,
-  ResetPasswordRequest
-} from './types/auth.types';
+import { trpc } from '../trpc';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const AUTH_URL = '/auth';
-
-export const authService = {
-  // Register a new user
-  register: (data: RegisterRequest): Promise<AuthResponse> => 
-    apiService.post<AuthResponse>(`${AUTH_URL}/register`, data),
+export const useAuth = () => {
+  const navigate = useNavigate();
+  const utils = trpc.useContext();
   
-  // Login user
-  login: (data: LoginRequest): Promise<AuthResponse> => 
-    apiService.post<AuthResponse>(`${AUTH_URL}/login`, data),
+  // Register mutation
+  const registerMutation = trpc.auth.register.useMutation({
+    onSuccess: (data) => {
+      localStorage.setItem('token', data.token);
+      utils.auth.me.invalidate();
+    },
+  });
   
-  // Logout user
-  logout: (): Promise<void> => {
+  // Login mutation
+  const loginMutation = trpc.auth.login.useMutation({
+    onSuccess: (data) => {
+      localStorage.setItem('token', data.token);
+      utils.auth.me.invalidate();
+    },
+  });
+  
+  // Get current user query
+  const { data: currentUser, isLoading: isLoadingUser } = trpc.auth.me.useQuery(
+    undefined,
+    { enabled: !!localStorage.getItem('token') }
+  );
+  
+  // Update profile mutation
+  const updateProfileMutation = trpc.auth.updateProfile.useMutation({
+    onSuccess: () => {
+      utils.auth.me.invalidate();
+    },
+  });
+  
+  // Change password mutation
+  const changePasswordMutation = trpc.auth.changePassword.useMutation();
+  
+  // Forgot password mutation
+  const forgotPasswordMutation = trpc.auth.forgotPassword.useMutation();
+  
+  // Reset password mutation
+  const resetPasswordMutation = trpc.auth.resetPassword.useMutation();
+  
+  // Logout function
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
-    return Promise.resolve();
-  },
+    utils.auth.me.invalidate();
+    navigate('/login');
+  }, [navigate, utils]);
   
-  // Get current user profile
-  getCurrentUser: (): Promise<UserProfile> => 
-    apiService.get<UserProfile>(`${AUTH_URL}/me`),
-  
-  // Update user profile
-  updateProfile: (data: Partial<UserProfile>): Promise<UserProfile> => 
-    apiService.put<UserProfile>(`${AUTH_URL}/me`, data),
-  
-  // Change password
-  changePassword: (data: PasswordChangeRequest): Promise<void> => 
-    apiService.post<void>(`${AUTH_URL}/change-password`, data),
-  
-  // Request password reset
-  forgotPassword: (data: ForgotPasswordRequest): Promise<void> => 
-    apiService.post<void>(`${AUTH_URL}/forgot-password`, data),
-  
-  // Reset password with token
-  resetPassword: (data: ResetPasswordRequest): Promise<void> => 
-    apiService.post<void>(`${AUTH_URL}/reset-password`, data),
-  
-  // Check if user is authenticated
-  isAuthenticated: (): boolean => {
-    const token = localStorage.getItem('token');
-    return !!token;
-  }
+  return {
+    currentUser,
+    isLoadingUser,
+    isLoggedIn: !!currentUser,
+    register: registerMutation.mutateAsync,
+    login: loginMutation.mutateAsync,
+    logout,
+    updateProfile: updateProfileMutation.mutateAsync,
+    changePassword: changePasswordMutation.mutateAsync,
+    forgotPassword: forgotPasswordMutation.mutateAsync,
+    resetPassword: resetPasswordMutation.mutateAsync,
+    isRegistering: registerMutation.isLoading,
+    isLoggingIn: loginMutation.isLoading,
+    isUpdatingProfile: updateProfileMutation.isLoading,
+  };
 };
-
-export default authService;
 ```
 
 ## Project Service
 
-The project service handles project creation, retrieval, updating, and deletion, as well as collaborator management.
+The project service handles project creation, retrieval, updating, and deletion, as well as collaborator management using tRPC procedures.
 
-### File: `src/services/project.service.ts`
+### File: `src/services/hooks/project.hooks.ts`
 
 ```typescript
-import { apiService } from './api';
-import { 
-  Project, 
-  ProjectCreateRequest, 
-  ProjectUpdateRequest,
-  CollaboratorRequest
-} from './types/project.types';
+import { trpc } from '../trpc';
+import { RouterInput } from '../trpc';
 
-const PROJECT_URL = '/projects';
-
-export const projectService = {
-  // Get all projects for current user
-  getProjects: (): Promise<Project[]> => 
-    apiService.get<Project[]>(PROJECT_URL),
+// Project list hook
+export const useProjects = () => {
+  const { data: projects, isLoading, error } = trpc.project.getProjects.useQuery();
   
-  // Get project by ID
-  getProjectById: (id: string): Promise<Project> => 
-    apiService.get<Project>(`${PROJECT_URL}/${id}`),
-  
-  // Create new project
-  createProject: (data: ProjectCreateRequest): Promise<Project> => 
-    apiService.post<Project>(PROJECT_URL, data),
-  
-  // Update project
-  updateProject: (id: string, data: ProjectUpdateRequest): Promise<Project> => 
-    apiService.put<Project>(`${PROJECT_URL}/${id}`, data),
-  
-  // Delete project
-  deleteProject: (id: string): Promise<void> => 
-    apiService.delete<void>(`${PROJECT_URL}/${id}`),
-  
-  // Get project collaborators
-  getCollaborators: (projectId: string): Promise<any[]> => 
-    apiService.get<any[]>(`${PROJECT_URL}/${projectId}/collaborators`),
-  
-  // Add collaborator to project
-  addCollaborator: (projectId: string, data: CollaboratorRequest): Promise<any> => 
-    apiService.post<any>(`${PROJECT_URL}/${projectId}/collaborators`, data),
-  
-  // Remove collaborator from project
-  removeCollaborator: (projectId: string, userId: string): Promise<void> => 
-    apiService.delete<void>(`${PROJECT_URL}/${projectId}/collaborators/${userId}`),
-  
-  // Update collaborator permissions
-  updateCollaborator: (projectId: string, userId: string, data: Partial<CollaboratorRequest>): Promise<any> => 
-    apiService.put<any>(`${PROJECT_URL}/${projectId}/collaborators/${userId}`, data)
+  return {
+    projects,
+    isLoading,
+    error,
+  };
 };
 
-export default projectService;
+// Single project hook
+export const useProject = (projectId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Get project by ID query
+  const { data: project, isLoading, error } = trpc.project.getProjectById.useQuery(
+    { id: projectId! },
+    { enabled: !!projectId }
+  );
+  
+  // Create project mutation
+  const createProjectMutation = trpc.project.createProject.useMutation({
+    onSuccess: () => {
+      utils.project.getProjects.invalidate();
+    },
+  });
+  
+  // Update project mutation
+  const updateProjectMutation = trpc.project.updateProject.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.project.getProjectById.invalidate({ id: projectId });
+        utils.project.getProjects.invalidate();
+      }
+    },
+  });
+  
+  // Delete project mutation
+  const deleteProjectMutation = trpc.project.deleteProject.useMutation({
+    onSuccess: () => {
+      utils.project.getProjects.invalidate();
+    },
+  });
+  
+  return {
+    project,
+    isLoading,
+    error,
+    createProject: createProjectMutation.mutateAsync,
+    updateProject: updateProjectMutation.mutateAsync,
+    deleteProject: deleteProjectMutation.mutateAsync,
+    isCreating: createProjectMutation.isLoading,
+    isUpdating: updateProjectMutation.isLoading,
+    isDeleting: deleteProjectMutation.isLoading,
+  };
+};
+
+// Project collaborators hook
+export const useProjectCollaborators = (projectId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Get collaborators query
+  const { data: collaborators, isLoading, error } = trpc.project.getCollaborators.useQuery(
+    { projectId: projectId! },
+    { enabled: !!projectId }
+  );
+  
+  // Add collaborator mutation
+  const addCollaboratorMutation = trpc.project.addCollaborator.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.project.getCollaborators.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Update collaborator mutation
+  const updateCollaboratorMutation = trpc.project.updateCollaborator.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.project.getCollaborators.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Remove collaborator mutation
+  const removeCollaboratorMutation = trpc.project.removeCollaborator.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.project.getCollaborators.invalidate({ projectId });
+      }
+    },
+  });
+  
+  return {
+    collaborators,
+    isLoading,
+    error,
+    addCollaborator: addCollaboratorMutation.mutateAsync,
+    updateCollaborator: updateCollaboratorMutation.mutateAsync,
+    removeCollaborator: removeCollaboratorMutation.mutateAsync,
+    isAdding: addCollaboratorMutation.isLoading,
+    isUpdating: updateCollaboratorMutation.isLoading,
+    isRemoving: removeCollaboratorMutation.isLoading,
+  };
+};
 ```
 
 ## Character Service
 
-The character service handles character creation, retrieval, updating, and deletion, as well as relationship management.
+The character service handles character creation, retrieval, updating, and deletion, as well as relationship management using tRPC procedures.
 
-### File: `src/services/character.service.ts`
+### File: `src/services/hooks/character.hooks.ts`
 
 ```typescript
-import { apiService } from './api';
-import { 
-  Character, 
-  CharacterCreateRequest, 
-  CharacterUpdateRequest,
-  CharacterRelationship
-} from './types/character.types';
+import { trpc } from '../trpc';
 
-const CHARACTER_URL = '/characters';
-
-export const characterService = {
-  // Get all characters for a project
-  getCharacters: (projectId: string): Promise<Character[]> => 
-    apiService.get<Character[]>(`/projects/${projectId}/characters`),
+// Character list hook
+export const useCharacters = (projectId: string | undefined) => {
+  const { data: characters, isLoading, error } = trpc.character.getCharacters.useQuery(
+    { projectId: projectId! },
+    { enabled: !!projectId }
+  );
   
-  // Get character by ID
-  getCharacterById: (characterId: string): Promise<Character> => 
-    apiService.get<Character>(`${CHARACTER_URL}/${characterId}`),
-  
-  // Create new character
-  createCharacter: (projectId: string, data: CharacterCreateRequest): Promise<Character> => 
-    apiService.post<Character>(`/projects/${projectId}/characters`, data),
-  
-  // Update character
-  updateCharacter: (characterId: string, data: CharacterUpdateRequest): Promise<Character> => 
-    apiService.put<Character>(`${CHARACTER_URL}/${characterId}`, data),
-  
-  // Delete character
-  deleteCharacter: (characterId: string): Promise<void> => 
-    apiService.delete<void>(`${CHARACTER_URL}/${characterId}`),
-  
-  // Get character relationships
-  getRelationships: (characterId: string): Promise<CharacterRelationship[]> => 
-    apiService.get<CharacterRelationship[]>(`${CHARACTER_URL}/${characterId}/relationships`),
-  
-  // Update character relationships
-  updateRelationships: (characterId: string, relationships: CharacterRelationship[]): Promise<CharacterRelationship[]> => 
-    apiService.put<CharacterRelationship[]>(`${CHARACTER_URL}/${characterId}/relationships`, { relationships })
+  return {
+    characters,
+    isLoading,
+    error,
+  };
 };
 
-export default characterService;
+// Single character hook
+export const useCharacter = (projectId: string | undefined, characterId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Get character by ID query
+  const { data: character, isLoading, error } = trpc.character.getCharacterById.useQuery(
+    { characterId: characterId! },
+    { enabled: !!characterId }
+  );
+  
+  // Create character mutation
+  const createCharacterMutation = trpc.character.createCharacter.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.character.getCharacters.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Update character mutation
+  const updateCharacterMutation = trpc.character.updateCharacter.useMutation({
+    onSuccess: () => {
+      if (characterId) {
+        utils.character.getCharacterById.invalidate({ characterId });
+      }
+      if (projectId) {
+        utils.character.getCharacters.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Delete character mutation
+  const deleteCharacterMutation = trpc.character.deleteCharacter.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.character.getCharacters.invalidate({ projectId });
+      }
+    },
+  });
+  
+  return {
+    character,
+    isLoading,
+    error,
+    createCharacter: createCharacterMutation.mutateAsync,
+    updateCharacter: updateCharacterMutation.mutateAsync,
+    deleteCharacter: deleteCharacterMutation.mutateAsync,
+    isCreating: createCharacterMutation.isLoading,
+    isUpdating: updateCharacterMutation.isLoading,
+    isDeleting: deleteCharacterMutation.isLoading,
+  };
+};
+
+// Character relationships hook
+export const useCharacterRelationships = (characterId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Get relationships query
+  const { data: relationships, isLoading, error } = trpc.character.getRelationships.useQuery(
+    { characterId: characterId! },
+    { enabled: !!characterId }
+  );
+  
+  // Update relationships mutation
+  const updateRelationshipsMutation = trpc.character.updateRelationships.useMutation({
+    onSuccess: () => {
+      if (characterId) {
+        utils.character.getRelationships.invalidate({ characterId });
+      }
+    },
+  });
+  
+  return {
+    relationships,
+    isLoading,
+    error,
+    updateRelationships: updateRelationshipsMutation.mutateAsync,
+    isUpdating: updateRelationshipsMutation.isLoading,
+  };
+};
 ```
 
 ## Setting Service
 
-The setting service handles setting creation, retrieval, updating, and deletion.
+The setting service handles setting creation, retrieval, updating, and deletion using tRPC procedures.
 
-### File: `src/services/setting.service.ts`
+### File: `src/services/hooks/setting.hooks.ts`
 
 ```typescript
-import { apiService } from './api';
-import { 
-  Setting, 
-  SettingCreateRequest, 
-  SettingUpdateRequest 
-} from './types/setting.types';
+import { trpc } from '../trpc';
 
-const SETTING_URL = '/settings';
-
-export const settingService = {
-  // Get all settings for a project
-  getSettings: (projectId: string): Promise<Setting[]> => 
-    apiService.get<Setting[]>(`/projects/${projectId}/settings`),
+// Setting list hook
+export const useSettings = (projectId: string | undefined) => {
+  const { data: settings, isLoading, error } = trpc.setting.getSettings.useQuery(
+    { projectId: projectId! },
+    { enabled: !!projectId }
+  );
   
-  // Get setting by ID
-  getSettingById: (settingId: string): Promise<Setting> => 
-    apiService.get<Setting>(`${SETTING_URL}/${settingId}`),
-  
-  // Create new setting
-  createSetting: (projectId: string, data: SettingCreateRequest): Promise<Setting> => 
-    apiService.post<Setting>(`/projects/${projectId}/settings`, data),
-  
-  // Update setting
-  updateSetting: (settingId: string, data: SettingUpdateRequest): Promise<Setting> => 
-    apiService.put<Setting>(`${SETTING_URL}/${settingId}`, data),
-  
-  // Delete setting
-  deleteSetting: (settingId: string): Promise<void> => 
-    apiService.delete<void>(`${SETTING_URL}/${settingId}`),
-  
-  // Upload map image
-  uploadMap: (settingId: string, file: File): Promise<{ url: string }> => {
-    const formData = new FormData();
-    formData.append('map', file);
-    
-    return apiService.post<{ url: string }>(
-      `${SETTING_URL}/${settingId}/map`, 
-      formData, 
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }
-    );
-  }
+  return {
+    settings,
+    isLoading,
+    error,
+  };
 };
 
-export default settingService;
+// Single setting hook
+export const useSetting = (projectId: string | undefined, settingId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Get setting by ID query
+  const { data: setting, isLoading, error } = trpc.setting.getSettingById.useQuery(
+    { settingId: settingId! },
+    { enabled: !!settingId }
+  );
+  
+  // Create setting mutation
+  const createSettingMutation = trpc.setting.createSetting.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.setting.getSettings.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Update setting mutation
+  const updateSettingMutation = trpc.setting.updateSetting.useMutation({
+    onSuccess: () => {
+      if (settingId) {
+        utils.setting.getSettingById.invalidate({ settingId });
+      }
+      if (projectId) {
+        utils.setting.getSettings.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Delete setting mutation
+  const deleteSettingMutation = trpc.setting.deleteSetting.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.setting.getSettings.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Upload map mutation
+  const uploadMapMutation = trpc.setting.uploadMap.useMutation({
+    onSuccess: () => {
+      if (settingId) {
+        utils.setting.getSettingById.invalidate({ settingId });
+      }
+    },
+  });
+  
+  return {
+    setting,
+    isLoading,
+    error,
+    createSetting: createSettingMutation.mutateAsync,
+    updateSetting: updateSettingMutation.mutateAsync,
+    deleteSetting: deleteSettingMutation.mutateAsync,
+    uploadMap: uploadMapMutation.mutateAsync,
+    isCreating: createSettingMutation.isLoading,
+    isUpdating: updateSettingMutation.isLoading,
+    isDeleting: deleteSettingMutation.isLoading,
+    isUploadingMap: uploadMapMutation.isLoading,
+  };
+};
 ```
 
 ## Plot Service
 
-The plot service handles plot creation, retrieval, updating, and deletion, as well as plot point management.
+The plot service handles plot creation, retrieval, updating, and deletion, as well as plot point management using tRPC procedures.
 
-### File: `src/services/plot.service.ts`
+### File: `src/services/hooks/plot.hooks.ts`
 
 ```typescript
-import { apiService } from './api';
-import { 
-  Plot, 
-  PlotCreateRequest, 
-  PlotUpdateRequest,
-  PlotPoint,
-  PlotPointCreateRequest,
-  PlotPointUpdateRequest
-} from './types/plot.types';
+import { trpc } from '../trpc';
 
-const PLOT_URL = '/plots';
-
-export const plotService = {
-  // Get all plots for a project
-  getPlots: (projectId: string): Promise<Plot[]> => 
-    apiService.get<Plot[]>(`/projects/${projectId}/plots`),
+// Plot list hook
+export const usePlots = (projectId: string | undefined) => {
+  const { data: plots, isLoading, error } = trpc.plot.getPlots.useQuery(
+    { projectId: projectId! },
+    { enabled: !!projectId }
+  );
   
-  // Get plot by ID
-  getPlotById: (plotId: string): Promise<Plot> => 
-    apiService.get<Plot>(`${PLOT_URL}/${plotId}`),
-  
-  // Create new plot
-  createPlot: (projectId: string, data: PlotCreateRequest): Promise<Plot> => 
-    apiService.post<Plot>(`/projects/${projectId}/plots`, data),
-  
-  // Update plot
-  updatePlot: (plotId: string, data: PlotUpdateRequest): Promise<Plot> => 
-    apiService.put<Plot>(`${PLOT_URL}/${plotId}`, data),
-  
-  // Delete plot
-  deletePlot: (plotId: string): Promise<void> => 
-    apiService.delete<void>(`${PLOT_URL}/${plotId}`),
-  
-  // Get plot points
-  getPlotPoints: (plotId: string): Promise<PlotPoint[]> => 
-    apiService.get<PlotPoint[]>(`${PLOT_URL}/${plotId}/points`),
-  
-  // Add plot point
-  addPlotPoint: (plotId: string, data: PlotPointCreateRequest): Promise<PlotPoint> => 
-    apiService.post<PlotPoint>(`${PLOT_URL}/${plotId}/points`, data),
-  
-  // Update plot point
-  updatePlotPoint: (plotId: string, pointId: string, data: PlotPointUpdateRequest): Promise<PlotPoint> => 
-    apiService.put<PlotPoint>(`${PLOT_URL}/${plotId}/points/${pointId}`, data),
-  
-  // Delete plot point
-  deletePlotPoint: (plotId: string, pointId: string): Promise<void> => 
-    apiService.delete<void>(`${PLOT_URL}/${plotId}/points/${pointId}`),
-  
-  // Reorder plot points
-  reorderPlotPoints: (plotId: string, pointIds: string[]): Promise<void> => 
-    apiService.put<void>(`${PLOT_URL}/${plotId}/points/reorder`, { pointIds })
+  return {
+    plots,
+    isLoading,
+    error,
+  };
 };
 
-export default plotService;
+// Single plot hook
+export const usePlot = (projectId: string | undefined, plotId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Get plot by ID query
+  const { data: plot, isLoading, error } = trpc.plot.getPlotById.useQuery(
+    { plotId: plotId! },
+    { enabled: !!plotId }
+  );
+  
+  // Create plot mutation
+  const createPlotMutation = trpc.plot.createPlot.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.plot.getPlots.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Update plot mutation
+  const updatePlotMutation = trpc.plot.updatePlot.useMutation({
+    onSuccess: () => {
+      if (plotId) {
+        utils.plot.getPlotById.invalidate({ plotId });
+      }
+      if (projectId) {
+        utils.plot.getPlots.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Delete plot mutation
+  const deletePlotMutation = trpc.plot.deletePlot.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.plot.getPlots.invalidate({ projectId });
+      }
+    },
+  });
+  
+  return {
+    plot,
+    isLoading,
+    error,
+    createPlot: createPlotMutation.mutateAsync,
+    updatePlot: updatePlotMutation.mutateAsync,
+    deletePlot: deletePlotMutation.mutateAsync,
+    isCreating: createPlotMutation.isLoading,
+    isUpdating: updatePlotMutation.isLoading,
+    isDeleting: deletePlotMutation.isLoading,
+  };
+};
+
+// Plot points hook
+export const usePlotPoints = (plotId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Get plot points query
+  const { data: plotPoints, isLoading, error } = trpc.plot.getPlotPoints.useQuery(
+    { plotId: plotId! },
+    { enabled: !!plotId }
+  );
+  
+  // Add plot point mutation
+  const addPlotPointMutation = trpc.plot.addPlotPoint.useMutation({
+    onSuccess: () => {
+      if (plotId) {
+        utils.plot.getPlotPoints.invalidate({ plotId });
+      }
+    },
+  });
+  
+  // Update plot point mutation
+  const updatePlotPointMutation = trpc.plot.updatePlotPoint.useMutation({
+    onSuccess: () => {
+      if (plotId) {
+        utils.plot.getPlotPoints.invalidate({ plotId });
+      }
+    },
+  });
+  
+  // Delete plot point mutation
+  const deletePlotPointMutation = trpc.plot.deletePlotPoint.useMutation({
+    onSuccess: () => {
+      if (plotId) {
+        utils.plot.getPlotPoints.invalidate({ plotId });
+      }
+    },
+  });
+  
+  // Reorder plot points mutation
+  const reorderPlotPointsMutation = trpc.plot.reorderPlotPoints.useMutation({
+    onSuccess: () => {
+      if (plotId) {
+        utils.plot.getPlotPoints.invalidate({ plotId });
+      }
+    },
+  });
+  
+  return {
+    plotPoints,
+    isLoading,
+    error,
+    addPlotPoint: addPlotPointMutation.mutateAsync,
+    updatePlotPoint: updatePlotPointMutation.mutateAsync,
+    deletePlotPoint: deletePlotPointMutation.mutateAsync,
+    reorderPlotPoints: reorderPlotPointsMutation.mutateAsync,
+    isAdding: addPlotPointMutation.isLoading,
+    isUpdating: updatePlotPointMutation.isLoading,
+    isDeleting: deletePlotPointMutation.isLoading,
+    isReordering: reorderPlotPointsMutation.isLoading,
+  };
+};
 ```
 
 ## Chapter Service
 
-The chapter service handles chapter creation, retrieval, updating, and deletion, as well as content management.
+The chapter service handles chapter creation, retrieval, updating, and deletion, as well as content management using tRPC procedures.
 
-### File: `src/services/chapter.service.ts`
+### File: `src/services/hooks/chapter.hooks.ts`
 
 ```typescript
-import { apiService } from './api';
-import { 
-  Chapter, 
-  ChapterCreateRequest, 
-  ChapterUpdateRequest,
-  ChapterContent
-} from './types/chapter.types';
+import { trpc } from '../trpc';
 
-const CHAPTER_URL = '/chapters';
-
-export const chapterService = {
-  // Get all chapters for a project
-  getChapters: (projectId: string): Promise<Chapter[]> => 
-    apiService.get<Chapter[]>(`/projects/${projectId}/chapters`),
+// Chapter list hook
+export const useChapters = (projectId: string | undefined) => {
+  const { data: chapters, isLoading, error } = trpc.chapter.getChapters.useQuery(
+    { projectId: projectId! },
+    { enabled: !!projectId }
+  );
   
-  // Get chapter by ID
-  getChapterById: (chapterId: string): Promise<Chapter> => 
-    apiService.get<Chapter>(`${CHAPTER_URL}/${chapterId}`),
-  
-  // Create new chapter
-  createChapter: (projectId: string, data: ChapterCreateRequest): Promise<Chapter> => 
-    apiService.post<Chapter>(`/projects/${projectId}/chapters`, data),
-  
-  // Update chapter
-  updateChapter: (chapterId: string, data: ChapterUpdateRequest): Promise<Chapter> => 
-    apiService.put<Chapter>(`${CHAPTER_URL}/${chapterId}`, data),
-  
-  // Delete chapter
-  deleteChapter: (chapterId: string): Promise<void> => 
-    apiService.delete<void>(`${CHAPTER_URL}/${chapterId}`),
-  
-  // Get chapter content
-  getChapterContent: (chapterId: string): Promise<ChapterContent> => 
-    apiService.get<ChapterContent>(`${CHAPTER_URL}/${chapterId}/content`),
-  
-  // Update chapter content
-  updateChapterContent: (chapterId: string, content: string): Promise<ChapterContent> => 
-    apiService.put<ChapterContent>(`${CHAPTER_URL}/${chapterId}/content`, { content }),
-  
-  // Reorder chapters
-  reorderChapters: (projectId: string, chapterIds: string[]): Promise<void> => 
-    apiService.put<void>(`/projects/${projectId}/chapters/reorder`, { chapterIds }),
-  
-  // Get chapter versions
-  getChapterVersions: (chapterId: string): Promise<any[]> => 
-    apiService.get<any[]>(`${CHAPTER_URL}/${chapterId}/versions`),
-  
-  // Get specific chapter version
-  getChapterVersion: (chapterId: string, versionId: string): Promise<ChapterContent> => 
-    apiService.get<ChapterContent>(`${CHAPTER_URL}/${chapterId}/versions/${versionId}`)
+  return {
+    chapters,
+    isLoading,
+    error,
+  };
 };
 
-export default chapterService;
+// Single chapter hook
+export const useChapter = (projectId: string | undefined, chapterId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Get chapter by ID query
+  const { data: chapter, isLoading, error } = trpc.chapter.getChapterById.useQuery(
+    { chapterId: chapterId! },
+    { enabled: !!chapterId }
+  );
+  
+  // Create chapter mutation
+  const createChapterMutation = trpc.chapter.createChapter.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.chapter.getChapters.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Update chapter mutation
+  const updateChapterMutation = trpc.chapter.updateChapter.useMutation({
+    onSuccess: () => {
+      if (chapterId) {
+        utils.chapter.getChapterById.invalidate({ chapterId });
+      }
+      if (projectId) {
+        utils.chapter.getChapters.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Delete chapter mutation
+  const deleteChapterMutation = trpc.chapter.deleteChapter.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.chapter.getChapters.invalidate({ projectId });
+      }
+    },
+  });
+  
+  return {
+    chapter,
+    isLoading,
+    error,
+    createChapter: createChapterMutation.mutateAsync,
+    updateChapter: updateChapterMutation.mutateAsync,
+    deleteChapter: deleteChapterMutation.mutateAsync,
+    isCreating: createChapterMutation.isLoading,
+    isUpdating: updateChapterMutation.isLoading,
+    isDeleting: deleteChapterMutation.isLoading,
+  };
+};
+
+// Chapter content hook
+export const useChapterContent = (chapterId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Get chapter content query
+  const { data: chapterContent, isLoading, error } = trpc.chapter.getChapterContent.useQuery(
+    { chapterId: chapterId! },
+    { enabled: !!chapterId }
+  );
+  
+  // Update chapter content mutation
+  const updateChapterContentMutation = trpc.chapter.updateChapterContent.useMutation({
+    onSuccess: () => {
+      if (chapterId) {
+        utils.chapter.getChapterContent.invalidate({ chapterId });
+      }
+    },
+  });
+  
+  return {
+    chapterContent,
+    isLoading,
+    error,
+    updateChapterContent: updateChapterContentMutation.mutateAsync,
+    isUpdating: updateChapterContentMutation.isLoading,
+  };
+};
+
+// Chapter reordering hook
+export const useChapterReordering = (projectId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Reorder chapters mutation
+  const reorderChaptersMutation = trpc.chapter.reorderChapters.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.chapter.getChapters.invalidate({ projectId });
+      }
+    },
+  });
+  
+  return {
+    reorderChapters: reorderChaptersMutation.mutateAsync,
+    isReordering: reorderChaptersMutation.isLoading,
+  };
+};
+
+// Chapter versions hook
+export const useChapterVersions = (chapterId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Get chapter versions query
+  const { data: chapterVersions, isLoading, error } = trpc.chapter.getChapterVersions.useQuery(
+    { chapterId: chapterId! },
+    { enabled: !!chapterId }
+  );
+  
+  // Get chapter version query
+  const getChapterVersion = (versionId: string) => {
+    return trpc.chapter.getChapterVersion.useQuery(
+      { chapterId: chapterId!, versionId },
+      { enabled: !!chapterId && !!versionId }
+    );
+  };
+  
+  return {
+    chapterVersions,
+    isLoading,
+    error,
+    getChapterVersion,
+  };
+};
 ```
 
 ## Export Service
 
-The export service handles document export creation, retrieval, and downloading.
+The export service handles document export creation, retrieval, and downloading using tRPC procedures.
 
-### File: `src/services/export.service.ts`
+### File: `src/services/hooks/export.hooks.ts`
 
 ```typescript
-import { apiService } from './api';
-import { 
-  Export, 
-  ExportCreateRequest, 
-  ExportFormat 
-} from './types/export.types';
+import { trpc } from '../trpc';
 
-const EXPORT_URL = '/exports';
-
-export const exportService = {
-  // Get all exports for a project
-  getExports: (projectId: string): Promise<Export[]> => 
-    apiService.get<Export[]>(`/projects/${projectId}/exports`),
+// Export list hook
+export const useExports = (projectId: string | undefined) => {
+  const { data: exports, isLoading, error } = trpc.export.getExports.useQuery(
+    { projectId: projectId! },
+    { enabled: !!projectId }
+  );
   
-  // Get export by ID
-  getExportById: (exportId: string): Promise<Export> => 
-    apiService.get<Export>(`${EXPORT_URL}/${exportId}`),
-  
-  // Create new export
-  createExport: (projectId: string, data: ExportCreateRequest): Promise<Export> => 
-    apiService.post<Export>(`/projects/${projectId}/exports`, data),
-  
-  // Delete export
-  deleteExport: (exportId: string): Promise<void> => 
-    apiService.delete<void>(`${EXPORT_URL}/${exportId}`),
-  
-  // Download export file
-  downloadExport: (exportId: string): Promise<Blob> => 
-    apiService.get<Blob>(`${EXPORT_URL}/${exportId}/download`, {
-      responseType: 'blob'
-    }),
-  
-  // Get available export formats
-  getExportFormats: (): Promise<ExportFormat[]> => 
-    apiService.get<ExportFormat[]>(`${EXPORT_URL}/formats`)
+  return {
+    exports,
+    isLoading,
+    error,
+  };
 };
 
-export default exportService;
+// Export formats hook
+export const useExportFormats = () => {
+  const { data: formats, isLoading, error } = trpc.export.getExportFormats.useQuery();
+  
+  return {
+    formats,
+    isLoading,
+    error,
+  };
+};
+
+// Export management hook
+export const useExportManagement = (projectId: string | undefined) => {
+  const utils = trpc.useContext();
+  
+  // Create export mutation
+  const createExportMutation = trpc.export.createExport.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.export.getExports.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Delete export mutation
+  const deleteExportMutation = trpc.export.deleteExport.useMutation({
+    onSuccess: () => {
+      if (projectId) {
+        utils.export.getExports.invalidate({ projectId });
+      }
+    },
+  });
+  
+  // Helper for downloading exports
+  const downloadExport = async (exportId: string, filename: string) => {
+    const blob = await trpc.export.downloadExport.mutate({ exportId });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+  
+  return {
+    createExport: createExportMutation.mutateAsync,
+    deleteExport: deleteExportMutation.mutateAsync,
+    downloadExport,
+    isCreating: createExportMutation.isLoading,
+    isDeleting: deleteExportMutation.isLoading,
+  };
+};
 ```
 
 ## AI Service
 
-The AI service handles AI-powered content generation, including text and image generation.
+The AI service handles AI-powered content generation, including text and image generation using tRPC procedures.
 
-### File: `src/services/ai.service.ts`
+### File: `src/services/hooks/ai.hooks.ts`
 
 ```typescript
-import { apiService } from './api';
-import { 
-  TextGenerationRequest, 
-  TextGenerationResponse,
-  ImageGenerationRequest,
-  ImageGenerationResponse,
-  GenerationCostEstimate,
-  AIProvider
-} from './types/ai.types';
+import { trpc } from '../trpc';
 
-const AI_URL = '/ai';
-
-export const aiService = {
-  // Generate text content
-  generateText: (data: TextGenerationRequest): Promise<TextGenerationResponse> => 
-    apiService.post<TextGenerationResponse>(`${AI_URL}/generate`, data),
+// AI text generation hook
+export const useAITextGeneration = () => {
+  const generateTextMutation = trpc.ai.generateText.useMutation();
   
-  // Generate image
-  generateImage: (data: ImageGenerationRequest): Promise<ImageGenerationResponse> => 
-    apiService.post<ImageGenerationResponse>(`${AI_URL}/generate-image`, data),
-  
-  // Save generation result
-  saveGeneration: (generationId: string): Promise<void> => 
-    apiService.put<void>(`${AI_URL}/generations/${generationId}/save`),
-  
-  // Get cost estimate for generation
-  getCostEstimate: (data: TextGenerationRequest | ImageGenerationRequest): Promise<GenerationCostEstimate> => 
-    apiService.post<GenerationCostEstimate>(`${AI_URL}/cost-estimate`, data),
-  
-  // Get available AI providers
-  getProviders: (): Promise<AIProvider[]> => 
-    apiService.get<AIProvider[]>(`${AI_URL}/providers`),
-  
-  // Generate character
-  generateCharacter: (projectId: string, data: any): Promise<any> => 
-    apiService.post<any>(`${AI_URL}/generate-character`, { ...data, project_id: projectId }),
-  
-  // Generate setting
-  generateSetting: (projectId: string, data: any): Promise<any> => 
-    apiService.post<any>(`${AI_URL}/generate-setting`, { ...data, project_id: projectId }),
-  
-  // Generate plot
-  generatePlot: (projectId: string, data: any): Promise<any> => 
-    apiService.post<any>(`${AI_URL}/generate-plot`, { ...data, project_id: projectId }),
-  
-  // Generate chapter
-  generateChapter: (projectId: string, data: any): Promise<any> => 
-    apiService.post<any>(`${AI_URL}/generate-chapter`, { ...data, project_id: projectId })
+  return {
+    generateText: generateTextMutation.mutateAsync,
+    isGenerating: generateTextMutation.isLoading,
+    error: generateTextMutation.error,
+  };
 };
 
-export default aiService;
+// AI image generation hook
+export const useAIImageGeneration = () => {
+  const generateImageMutation = trpc.ai.generateImage.useMutation();
+  
+  return {
+    generateImage: generateImageMutation.mutateAsync,
+    isGenerating: generateImageMutation.isLoading,
+    error: generateImageMutation.error,
+  };
+};
+
+// AI generation saving hook
+export const useAISaving = () => {
+  const saveGenerationMutation = trpc.ai.saveGeneration.useMutation();
+  
+  return {
+    saveGeneration: saveGenerationMutation.mutateAsync,
+    isSaving: saveGenerationMutation.isLoading,
+    error: saveGenerationMutation.error,
+  };
+};
+
+// AI providers hook
+export const useAIProviders = () => {
+  const { data: providers, isLoading, error } = trpc.ai.getProviders.useQuery();
+  
+  return {
+    providers,
+    isLoading,
+    error,
+  };
+};
+
+// AI cost estimation hook
+export const useAICostEstimation = () => {
+  const getCostEstimateMutation = trpc.ai.getCostEstimate.useMutation();
+  
+  return {
+    getCostEstimate: getCostEstimateMutation.mutateAsync,
+    isEstimating: getCostEstimateMutation.isLoading,
+    error: getCostEstimateMutation.error,
+  };
+};
+
+// AI story element generation hooks
+export const useAIStoryElementGeneration = (projectId: string | undefined) => {
+  // Generation mutations
+  const generateCharacterMutation = trpc.ai.generateCharacter.useMutation();
+  const generateSettingMutation = trpc.ai.generateSetting.useMutation();
+  const generatePlotMutation = trpc.ai.generatePlot.useMutation();
+  const generateChapterMutation = trpc.ai.generateChapter.useMutation();
+  
+  return {
+    generateCharacter: (data: any) => generateCharacterMutation.mutateAsync({ ...data, projectId: projectId! }),
+    generateSetting: (data: any) => generateSettingMutation.mutateAsync({ ...data, projectId: projectId! }),
+    generatePlot: (data: any) => generatePlotMutation.mutateAsync({ ...data, projectId: projectId! }),
+    generateChapter: (data: any) => generateChapterMutation.mutateAsync({ ...data, projectId: projectId! }),
+    isGeneratingCharacter: generateCharacterMutation.isLoading,
+    isGeneratingSetting: generateSettingMutation.isLoading,
+    isGeneratingPlot: generatePlotMutation.isLoading,
+    isGeneratingChapter: generateChapterMutation.isLoading,
+  };
+};
 ```
 
 ## Error Handling
 
-The API service layer includes centralized error handling to provide consistent error messages and responses across the application.
+The API service layer includes centralized error handling through tRPC's built-in error handling capabilities.
 
-### File: `src/services/error-handler.ts`
+### File: `src/services/hooks/error.hooks.ts`
 
 ```typescript
-import { AxiosError } from 'axios';
+import { TRPCClientError } from '@trpc/client';
+import { toast } from 'react-toastify';
+import { useState, useCallback } from 'react';
 
 export interface ApiError {
   message: string;
@@ -593,97 +954,110 @@ export interface ApiError {
   field?: string;
 }
 
-export const handleApiError = (error: unknown): ApiError => {
-  if (error instanceof AxiosError && error.response) {
-    // Handle structured API errors
-    const { data, status } = error.response;
+// Extract error details from tRPC errors
+export const getErrorDetails = (error: unknown): ApiError => {
+  if (error instanceof TRPCClientError) {
+    const trpcError = error.data?.zodError || error.data;
     
-    if (data.message) {
+    // Handle zod validation errors
+    if (trpcError?.zodError) {
+      const firstError = trpcError.zodError.fieldErrors[Object.keys(trpcError.zodError.fieldErrors)[0]][0];
       return {
-        message: data.message,
-        code: data.code,
-        field: data.field
+        message: firstError,
+        field: Object.keys(trpcError.zodError.fieldErrors)[0],
       };
     }
     
-    // Handle different status codes
-    switch (status) {
-      case 400:
-        return { message: 'Invalid request. Please check your data.' };
-      case 401:
-        return { message: 'Authentication required. Please log in.' };
-      case 403:
-        return { message: 'You do not have permission to perform this action.' };
-      case 404:
-        return { message: 'The requested resource was not found.' };
-      case 422:
-        return { message: 'Validation error. Please check your input.' };
-      case 500:
-        return { message: 'Server error. Please try again later.' };
-      default:
-        return { message: 'An unexpected error occurred.' };
+    // Handle tRPC errors with custom shape
+    if (trpcError?.code) {
+      return {
+        message: trpcError.message || 'An error occurred',
+        code: trpcError.code,
+        field: trpcError.field,
+      };
     }
-  }
-  
-  // Handle network errors
-  if (error instanceof AxiosError && error.request) {
-    return { message: 'Network error. Please check your connection.' };
+    
+    // Handle generic tRPC error
+    return {
+      message: error.message,
+    };
   }
   
   // Handle other errors
-  return { message: 'An unexpected error occurred.' };
+  if (error instanceof Error) {
+    return { message: error.message };
+  }
+  
+  return { message: 'An unexpected error occurred' };
 };
 
-export default handleApiError;
+// Hook for handling API errors in UI components
+export const useApiError = () => {
+  const [error, setError] = useState<ApiError | null>(null);
+  
+  const handleError = useCallback((err: unknown) => {
+    const errorDetails = getErrorDetails(err);
+    setError(errorDetails);
+    toast.error(errorDetails.message);
+    return errorDetails;
+  }, []);
+  
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+  
+  return {
+    error,
+    handleError,
+    clearError,
+  };
+};
 ```
 
 ## Implementation Plan
 
 The API service layer should be implemented in the following order:
 
-1. **Base API Service**: Implement the core API configuration with Axios.
-2. **Authentication Service**: Implement user authentication functionality.
-3. **Project Service**: Implement project management functionality.
-4. **Character Service**: Implement character management functionality.
-5. **Setting Service**: Implement setting management functionality.
-6. **Plot Service**: Implement plot management functionality.
-7. **Chapter Service**: Implement chapter management functionality.
-8. **Export Service**: Implement export functionality.
-9. **AI Service**: Implement AI generation functionality.
+1. **tRPC Client Setup**: Implement the core tRPC client configuration.
+2. **Authentication Hooks**: Implement user authentication functionality.
+3. **Project Hooks**: Implement project management functionality.
+4. **Character Hooks**: Implement character management functionality.
+5. **Setting Hooks**: Implement setting management functionality.
+6. **Plot Hooks**: Implement plot management functionality.
+7. **Chapter Hooks**: Implement chapter management functionality.
+8. **Export Hooks**: Implement export functionality.
+9. **AI Hooks**: Implement AI generation functionality.
 
 ### Implementation Steps
 
-1. **Create Type Definitions**:
-   - Define TypeScript interfaces for all API requests and responses.
-   - Ensure proper typing for all service methods.
+1. **Set Up tRPC Client**:
+   - Configure tRPC with React Query integration
+   - Set up authentication and error handling
+   - Create provider component for the React app
 
-2. **Implement Base API Service**:
-   - Set up Axios instance with default configuration.
-   - Implement request and response interceptors.
-   - Create helper methods for common HTTP methods.
+2. **Create Type Definitions**:
+   - Ensure proper imports of server-defined types
+   - Create additional frontend-specific type definitions as needed
 
-3. **Implement Domain-Specific Services**:
-   - Implement each service following the patterns outlined above.
-   - Ensure proper error handling for each service method.
+3. **Implement Service Hooks**:
+   - Create custom React hooks for each domain
+   - Implement proper data fetching, caching, and mutation strategies
+   - Handle loading states and errors
 
-4. **Create Custom Hooks**:
-   - Create React hooks that utilize the services for data fetching and state management.
-   - Implement loading, error, and data states for each hook.
-
-5. **Integration with Components**:
-   - Connect the services to the UI components through custom hooks.
-   - Ensure proper error handling and loading states in the UI.
+4. **Integration with Components**:
+   - Update UI components to use the tRPC hooks
+   - Implement proper loading and error states in the UI
 
 ### Testing Strategy
 
 1. **Unit Tests**:
-   - Test each service method in isolation.
-   - Mock API responses for predictable testing.
+   - Test each custom hook in isolation
+   - Mock tRPC responses for predictable testing
 
 2. **Integration Tests**:
-   - Test the integration between services and hooks.
-   - Test the integration between hooks and components.
+   - Test the integration between hooks and components
+   - Verify proper data flow and UI updates
 
 3. **End-to-End Tests**:
-   - Test the complete flow from UI interaction to API call and back.
-   - Ensure proper error handling and loading states. 
+   - Test complete flows from UI interaction to API call and back
+   - Verify proper error handling and loading states 

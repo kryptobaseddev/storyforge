@@ -36,25 +36,27 @@ StoryForge uses MongoDB as its database, with Mongoose as the ODM (Object Docume
   userId: ObjectId,  // Reference to project owner
   title: String,     // Project title
   description: String, // Project description
-  genre: String,     // Story genre
-  targetAudience: String, // Target audience age group
+  genre: String,     // Story genre (e.g., "fantasy", "science fiction")
+  targetAudience: String, // Target audience age group (e.g., "young adult", "adult")
   narrativeType: String, // E.g., "Short Story", "Novel", "Screenplay"
-  status: String,    // E.g., "Draft", "In Progress", "Completed"
+  status: String,    // E.g., "Draft", "In Progress", "Completed", "Archived"
   tone: String,      // E.g., "Serious", "Humorous", "Educational"
-  style: String,     // Writing style
+  style: String,     // E.g., "Descriptive", "Dialogue-heavy", "Action-oriented"
   targetLength: {    // Target length for the story
     type: String,    // E.g., "Words", "Pages", "Chapters"
     value: Number
   },
   collaborators: [{  // Users with access to this project
     userId: ObjectId,
-    role: String     // E.g., "Editor", "Viewer"
+    role: String     // E.g., "Editor", "Viewer", "Contributor"
   }],
   metadata: {        // Additional project metadata
     createdWithTemplate: Boolean,
     templateId: ObjectId,
     tags: [String]
   },
+  completionDate: Date, // Estimated or actual completion date
+  isPublic: Boolean,    // Whether the project is publicly viewable
   createdAt: Date,
   updatedAt: Date
 }
@@ -100,7 +102,7 @@ StoryForge uses MongoDB as its database, with Mongoose as the ODM (Object Docume
     relationshipType: String, // E.g., "Friend", "Enemy", "Family"
     notes: String
   }],
-  plotInvolvement: [ObjectId], // References to plotlines this character is involved in
+  plotInvolvement: [ObjectId], // References to plots this character is involved in
   imageUrl: String,    // URL to character image/avatar
   notes: String,       // Additional notes about the character
   createdAt: Date,
@@ -171,26 +173,27 @@ StoryForge uses MongoDB as its database, with Mongoose as the ODM (Object Docume
 }
 ```
 
-### Plotlines
+### Plots
 ```javascript
 {
   _id: ObjectId,
   projectId: ObjectId, // Reference to parent project
-  title: String,       // Plotline title
-  description: String, // Plotline description
+  title: String,       // Plot title
+  description: String, // Plot description
   type: String,        // E.g., "Main Plot", "Subplot", "Character Arc"
-  structure: String,   // E.g., "Three-Act", "Hero's Journey"
+  structure: String,   // E.g., "Three-Act", "Hero's Journey", "Save the Cat"
   importance: Number,  // 1-5 scale of importance to the story
-  status: String,      // E.g., "Planned", "In Progress", "Completed"
+  status: String,      // E.g., "Planned", "In Progress", "Completed", "Abandoned"
   elements: [{
-    type: String,      // E.g., "Setup", "Conflict", "Resolution"
+    _id: ObjectId,     // Element ID
+    type: String,      // E.g., "Setup", "Inciting Incident", "Rising Action"
     description: String,
     characters: [ObjectId], // Characters involved
     settings: [ObjectId],   // Settings involved
     objects: [ObjectId],    // Objects involved
-    order: Number           // Order in the plotline
+    order: Number           // Order in the plot sequence
   }],
-  relatedPlotlines: [ObjectId], // References to related plotlines
+  relatedPlots: [ObjectId], // References to related plots
   notes: String,       // Additional notes
   createdAt: Date,
   updatedAt: Date
@@ -210,7 +213,7 @@ StoryForge uses MongoDB as its database, with Mongoose as the ODM (Object Docume
   wordCount: Number,   // Word count for the chapter
   characters: [ObjectId], // Characters appearing in the chapter
   settings: [ObjectId],   // Settings appearing in the chapter
-  plotlines: [ObjectId],  // Plotlines advanced in the chapter
+  plots: [ObjectId],      // Plots advanced in the chapter
   objects: [ObjectId],    // Objects featured in the chapter
   notes: String,          // Additional notes
   aiGenerated: {         // Metadata for AI-generated content
@@ -224,6 +227,33 @@ StoryForge uses MongoDB as its database, with Mongoose as the ODM (Object Docume
     userId: ObjectId,
     changes: String
   }],
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Exports
+```javascript
+{
+  _id: ObjectId,
+  projectId: ObjectId, // Reference to parent project
+  userId: ObjectId,    // User who created the export
+  title: String,       // Export title
+  description: String, // Export description
+  format: String,      // E.g., "PDF", "DOCX", "EPUB", "HTML"
+  chapters: [ObjectId], // Chapters included in the export
+  settings: {          // Export settings
+    includeChapterNumbers: Boolean,
+    includeTableOfContents: Boolean,
+    includeChapterTitles: Boolean,
+    fontFamily: String,
+    fontSize: Number,
+    lineSpacing: Number,
+    pageSize: String,
+    margins: Object
+  },
+  status: String,      // E.g., "Pending", "Completed", "Failed"
+  downloadUrl: String, // URL to download the exported file
   createdAt: Date,
   updatedAt: Date
 }
@@ -249,11 +279,11 @@ StoryForge uses MongoDB as its database, with Mongoose as the ODM (Object Docume
 The database schema establishes relationships between collections through reference fields:
 
 - **Users** → **Projects**: One-to-many (a user can have multiple projects)
-- **Projects** → **Characters**, **Settings**, **Objects**, **Plotlines**, **Chapters**: One-to-many (a project contains multiple elements)
+- **Projects** → **Characters**, **Settings**, **Objects**, **Plots**, **Chapters**: One-to-many (a project contains multiple elements)
 - **Characters** ↔ **Characters**: Many-to-many (characters have relationships with other characters)
-- **Characters** → **Plotlines**: Many-to-many (characters are involved in multiple plotlines)
+- **Characters** → **Plots**: Many-to-many (characters are involved in multiple plots)
 - **Settings** → **Characters**, **Objects**: Many-to-many (settings contain characters and objects)
-- **Chapters** → **Characters**, **Settings**, **Objects**, **Plotlines**: Many-to-many (chapters reference multiple story elements)
+- **Chapters** → **Characters**, **Settings**, **Objects**, **Plots**: Many-to-many (chapters reference multiple story elements)
 
 ## Indexes
 
@@ -265,9 +295,10 @@ To optimize query performance, the following indexes will be implemented:
 - `characters.projectId`
 - `settings.projectId`
 - `objects.projectId`
-- `plotlines.projectId`
+- `plots.projectId`
 - `chapters.projectId`
 - `chapters.position`
+- `exports.projectId`
 
 ## Data Validation
 
@@ -278,3 +309,4 @@ Mongoose schemas will include validation rules to ensure data integrity:
 - Enumerated values for fields with fixed options
 - Reference validation to ensure relationships are valid
 - Custom validators for complex rules 
+- TypeScript type definitions for strict type checking 

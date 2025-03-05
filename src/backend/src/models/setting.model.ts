@@ -41,21 +41,26 @@ const SettingSchema: Schema = new Schema({
   projectId: {
     type: Schema.Types.ObjectId,
     ref: 'Project',
-    required: true
+    required: [true, 'Project ID is required']
   },
   name: {
     type: String,
-    required: true,
-    trim: true
+    required: [true, 'Setting name is required'],
+    trim: true,
+    maxlength: [100, 'Setting name cannot exceed 100 characters']
   },
   description: {
     type: String,
-    required: true
+    required: [true, 'Setting description is required'],
+    maxlength: [2000, 'Setting description cannot exceed 2000 characters']
   },
   type: {
     type: String,
-    required: true,
-    enum: ['Location', 'World', 'Environment', 'Building', 'Region', 'Planet']
+    required: [true, 'Setting type is required'],
+    enum: {
+      values: ['Location', 'World', 'Environment', 'Building', 'Region', 'Planet'],
+      message: 'Type must be a valid setting type'
+    }
   },
   details: {
     geography: {
@@ -96,7 +101,7 @@ const SettingSchema: Schema = new Schema({
       type: String
     },
     coordinates: {
-      type: Object
+      type: Schema.Types.Mixed
     }
   },
   relatedSettings: [{
@@ -123,6 +128,7 @@ const SettingSchema: Schema = new Schema({
 
 // Add text index for search
 SettingSchema.index({ name: 'text', description: 'text' });
+SettingSchema.index({ projectId: 1 });
 
 // Create and export the model
 export default mongoose.model<ISetting>('Setting', SettingSchema); 
