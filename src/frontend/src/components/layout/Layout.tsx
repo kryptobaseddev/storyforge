@@ -1,6 +1,6 @@
-import { Header } from "./Header";
-import { Sidebar } from "./Sidebar";
-import { Footer } from "./Footer";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
+import Footer from "./Footer";
 import { cn } from "../../lib/utils";
 
 interface LayoutProps {
@@ -11,9 +11,9 @@ interface LayoutProps {
 export function Layout({ children, className }: LayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      <Header toggleSidebar={() => {}}  />
       <div className="flex flex-1">
-        <Sidebar className="hidden md:block" />
+        <Sidebar isOpen={true} />
         <main className={cn("flex-1 p-6", className)}>
           {children}
         </main>

@@ -1,19 +1,56 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layout } from '../../components/layout/Layout';
-import { projectsApi, ProjectData } from '../../lib/api';
+import { useProjectService } from '../../hooks/useProjectService';
+import { getErrorMessage } from '../../utils/errorHandler';
 import { AIAssistant } from '../../components/features/ai/AIAssistant';
+
+// Define genres exactly as they are in the backend schema
+type GenreType = 
+  | 'fantasy'
+  | 'science fiction'
+  | 'mystery'
+  | 'adventure'
+  | 'historical fiction'
+  | 'realistic fiction'
+  | 'horror'
+  | 'comedy'
+  | 'drama'
+  | 'fairy tale'
+  | 'fable'
+  | 'superhero';
+
+// Define audience types
+type TargetAudienceType = 'children' | 'middle grade' | 'young adult' | 'adult';
+
+// Define narrative types
+type NarrativeType = 'Short Story' | 'Novel' | 'Screenplay' | 'Comic' | 'Poem';
+
+// Form data for frontend
+interface ProjectFormData {
+  title: string;
+  description: string;
+  genre: string;
+  targetAudience: TargetAudienceType;
+  narrativeType: NarrativeType;
+  tone?: string;
+  style?: string;
+}
 
 export default function CreateProject() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [project, setProject] = useState<ProjectData>({
+  const [project, setProject] = useState<ProjectFormData>({
     title: '',
     description: '',
     genre: '',
     targetAudience: 'children',
+    narrativeType: 'Novel',
   });
+
+  // Use the project service hook
+  const { createProject } = useProjectService();
+  const createMutation = createProject();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -22,17 +59,51 @@ export default function CreateProject() {
     setProject((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Map UI genre values to backend genre values
+  const mapGenreToBackendValue = (uiGenre: string): GenreType | undefined => {
+    const genreMap: Record<string, GenreType> = {
+      'fantasy': 'fantasy',
+      'science-fiction': 'science fiction',
+      'mystery': 'mystery',
+      'adventure': 'adventure',
+      'historical': 'historical fiction',
+      'fairy-tale': 'fairy tale',
+      'realistic': 'realistic fiction',
+      'horror': 'horror',
+      'comedy': 'comedy',
+      'drama': 'drama',
+      'fable': 'fable',
+      'superhero': 'superhero',
+    };
+    
+    return genreMap[uiGenre] as GenreType | undefined;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     try {
-      await projectsApi.create(project);
-      navigate('/dashboard');
+      // Convert genre to backend value
+      const backendGenre = mapGenreToBackendValue(project.genre);
+      
+      if (!backendGenre && project.genre) {
+        throw new Error('Invalid genre selection');
+      }
+
+      await createMutation.mutateAsync({
+        title: project.title,
+        description: project.description,
+        genre: backendGenre as GenreType, // Cast is safe because we validate above
+        targetAudience: project.targetAudience,
+        narrativeType: project.narrativeType,
+      });
+      
+      navigate('/projects');
     } catch (err) {
       console.error('Error creating project:', err);
-      setError('Failed to create project. Please try again.');
+      setError(getErrorMessage(err) || 'Failed to create project. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +123,6 @@ export default function CreateProject() {
   };
 
   return (
-    <Layout>
       <div className="mx-auto max-w-4xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight">Create New Story</h1>
@@ -125,12 +195,17 @@ export default function CreateProject() {
                   >
                     <option value="">Select a genre</option>
                     <option value="fantasy">Fantasy</option>
-                    <option value="adventure">Adventure</option>
-                    <option value="mystery">Mystery</option>
                     <option value="science-fiction">Science Fiction</option>
-                    <option value="historical">Historical</option>
+                    <option value="mystery">Mystery</option>
+                    <option value="adventure">Adventure</option>
+                    <option value="historical">Historical Fiction</option>
+                    <option value="realistic">Realistic Fiction</option>
+                    <option value="horror">Horror</option>
+                    <option value="comedy">Comedy</option>
+                    <option value="drama">Drama</option>
                     <option value="fairy-tale">Fairy Tale</option>
-                    <option value="other">Other</option>
+                    <option value="fable">Fable</option>
+                    <option value="superhero">Superhero</option>
                   </select>
                 </div>
 
@@ -149,9 +224,31 @@ export default function CreateProject() {
                     className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <option value="children">Children (Ages 5-8)</option>
-                    <option value="middle-grade">Middle Grade (Ages 9-12)</option>
-                    <option value="young-adult">Young Adult (Ages 13-17)</option>
+                    <option value="middle grade">Middle Grade (Ages 9-12)</option>
+                    <option value="young adult">Young Adult (Ages 13-17)</option>
                     <option value="adult">Adult</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="narrativeType"
+                    className="block text-sm font-medium text-foreground"
+                  >
+                    Narrative Type
+                  </label>
+                  <select
+                    id="narrativeType"
+                    name="narrativeType"
+                    value={project.narrativeType}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option value="Novel">Novel</option>
+                    <option value="Short Story">Short Story</option>
+                    <option value="Screenplay">Screenplay</option>
+                    <option value="Comic">Comic</option>
+                    <option value="Poem">Poem</option>
                   </select>
                 </div>
               </div>
@@ -159,17 +256,17 @@ export default function CreateProject() {
               <div className="flex justify-end space-x-4">
                 <button
                   type="button"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate('/projects')}
                   className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || createMutation.isLoading}
                   className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {isLoading ? 'Creating...' : 'Create Story'}
+                  {isLoading || createMutation.isLoading ? 'Creating...' : 'Create Story'}
                 </button>
               </div>
             </form>
@@ -180,6 +277,5 @@ export default function CreateProject() {
           </div>
         </div>
       </div>
-    </Layout>
   );
 } 

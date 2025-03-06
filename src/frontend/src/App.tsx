@@ -1,13 +1,38 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/theme-provider';
+import { UIProvider } from './context/UIContext';
 import MainLayout from './components/layout/MainLayout';
 import './App.css';
+
+// Import tRPC providers
+import { trpc, trpcClient, queryClient } from './utils/trpc';
+import { QueryClientProvider } from '@tanstack/react-query';
+
+// Import AuthProvider
+import { AuthProvider } from './context/AuthContext';
+
+// Import ProtectedRoute
+import ProtectedRoute from './components/common/ProtectedRoute';
+
+// Import UI components
+import { Toaster } from './components/ui/sonner';
+import { Loader2 } from 'lucide-react';
+
+// Import Auth Pages
+import LoginPage from './pages/auth/login';
+import RegisterPage from './pages/auth/register';
+import ForgotPasswordPage from './pages/auth/forgot-password';
+import ResetPasswordPage from './pages/auth/reset-password';
+
+// Import Test Page
+import TestPage from './pages/TestPage';
 
 // Import pages (we'll create these later)
 // Use lazy loading for better performance
 const Dashboard = React.lazy(() => import('./pages/dashboard/DashboardPage'));
 const Projects = React.lazy(() => import('./pages/projects/ProjectsPage'));
+const CreateProject = React.lazy(() => import('./pages/projects/create'));
 
 /**
  * Main App Component
@@ -17,42 +42,71 @@ const Projects = React.lazy(() => import('./pages/projects/ProjectsPage'));
 const App: React.FC = () => {
   // Loading fallback component
   const LoadingFallback = () => (
-    <div className="flex items-center justify-center h-screen w-full">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    <div 
+      className="flex items-center justify-center h-screen w-full"
+      style={{ backgroundColor: 'hsl(var(--background))' }}
+    >
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
     </div>
   );
   
   return (
-    <ThemeProvider defaultTheme="light" storageKey="storyforge-theme">
-      <Router>
-        <React.Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/login" element={<div>Login Page (Coming Soon)</div>} />
-            <Route path="/register" element={<div>Register Page (Coming Soon)</div>} />
-            
-            {/* Routes with MainLayout */}
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="projects" element={<Projects />} />
-              
-              {/* Project routes */}
-              <Route path="project">
-                <Route path="characters" element={<div>Characters (Coming Soon)</div>} />
-                <Route path="settings" element={<div>Settings (Coming Soon)</div>} />
-                <Route path="plots" element={<div>Plots (Coming Soon)</div>} />
-                <Route path="chapters" element={<div>Chapters (Coming Soon)</div>} />
-                <Route path="exports" element={<div>Exports (Coming Soon)</div>} />
-              </Route>
-              
-              {/* Catch-all redirect */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Route>
-          </Routes>
-        </React.Suspense>
-      </Router>
-    </ThemeProvider>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ThemeProvider defaultTheme="system" storageKey="storyforge-theme">
+            <UIProvider>
+              <Router>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  <Route path="/test" element={<TestPage />} />
+                  
+                  {/* Protected routes */}
+                  <Route element={<ProtectedRoute />}>
+                    <Route element={<MainLayout />}>
+                      <Route index element={<Navigate to="/dashboard" replace />} />
+                      <Route path="dashboard" element={
+                        <React.Suspense fallback={<LoadingFallback />}>
+                          <Dashboard />
+                        </React.Suspense>
+                      } />
+                      <Route path="projects" element={
+                        <React.Suspense fallback={<LoadingFallback />}>
+                          <Projects />
+                        </React.Suspense>
+                      } />
+                      <Route path="projects/new" element={
+                        <React.Suspense fallback={<LoadingFallback />}>
+                          <CreateProject />
+                        </React.Suspense>
+                      } />
+                      <Route path="test-inside" element={<TestPage />} />
+                      
+                      {/* Project routes */}
+                      <Route path="project">
+                        <Route path="characters" element={<div>Characters (Coming Soon)</div>} />
+                        <Route path="settings" element={<div>Settings (Coming Soon)</div>} />
+                        <Route path="plots" element={<div>Plots (Coming Soon)</div>} />
+                        <Route path="chapters" element={<div>Chapters (Coming Soon)</div>} />
+                        <Route path="exports" element={<div>Exports (Coming Soon)</div>} />
+                      </Route>
+                      
+                      {/* Catch-all redirect */}
+                      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    </Route>
+                  </Route>
+                </Routes>
+                <Toaster position="top-right" />
+              </Router>
+            </UIProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 };
 

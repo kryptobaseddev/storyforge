@@ -10,9 +10,13 @@ src/
 ├── components/
 │   ├── features/       (Feature-specific components)
 │   │   ├── ai/         (AI generation components)
+│   │   ├── auth/       (Authentication components)    
 │   │   ├── characters/ (Character management components)
 │   │   ├── projects/   (Project management components)
-│   │   └── auth/       (Authentication components)
+│   │   ├── settings/   (Setting management components)
+│   │   ├── plots/      (Plot management components)
+│   │   ├── chapters/   (Chapter management components)
+│   │   └── exports/    (Export functionality components)
 │   ├── layout/         (Layout components)
 │   │   ├── Header.tsx
 │   │   ├── Sidebar.tsx
@@ -26,7 +30,19 @@ src/
 │   └── projects/
 ├── lib/                (Utility functions)
 ├── hooks/              (Custom React hooks)
+│   ├── useAuthService.ts
+│   ├── useProjectService.ts
+│   ├── useCharacterService.ts
+│   ├── useSettingService.ts
+│   ├── usePlotService.ts
+│   ├── useChapterService.ts
+│   ├── useExportService.ts
+│   ├── useAIService.ts
+│   ├── useUserService.ts
+│   └── useToast.ts
 ├── services/           (API service modules)
+│   ├── api.ts          (Base API client)
+│   └── error-handler.ts
 ├── assets/             (Static resources)
 ├── App.tsx             (Main application component)
 ├── App.css             (Global styles)
@@ -37,61 +53,65 @@ src/
 
 ## Component Organization (Revised)
 
-Building on the existing structure, we will organize components as follows:
+Building on the existing structure and aligning with our actual API endpoints, we will organize components as follows:
 
-### 1. Feature Components
+### 1. Feature Components Mapped to API Endpoints
 ```
 src/components/features/
 ├── ai/                        (AI generation components)
-│   ├── AIGenerationForm.tsx   (Form for generating AI content)
+│   ├── AIGenerationForm.tsx   (Form for generating AI content - uses ai.generateText)
 │   ├── AIResultDisplay.tsx    (Display for AI generation results)
-│   ├── ImageGenerationForm.tsx (Form for image generation with OpenAI)
-│   ├── TextGenerationForm.tsx  (Form for text generation)
-│   ├── AISelectionControl.tsx  (Controls for selecting AI provider)
-│   └── AIPromptBuilder.tsx     (Helper for building effective prompts)
+│   ├── TextGenerationForm.tsx (Form for text generation - uses ai.continueText)
+│   ├── AISuggestionPanel.tsx  (Shows writing suggestions - uses ai.getSuggestions)
+│   └── AITextAnalyzer.tsx     (Text analysis tool - uses ai.analyzeText)
 ├── auth/                      (Authentication components)
-│   ├── LoginForm.tsx          (User login)
-│   ├── RegisterForm.tsx       (User registration)
+│   ├── LoginForm.tsx          (User login - uses auth.login)
+│   ├── RegisterForm.tsx       (User registration - uses auth.register)
 │   ├── ForgotPasswordForm.tsx (Password recovery)
-│   ├── ProfileForm.tsx        (User profile editing)
-│   └── PasswordChangeForm.tsx (Password change)
+│   └── VerifyTokenForm.tsx    (Verify JWT token - uses auth.verifyToken)
+├── user/                      (User profile components)
+│   ├── ProfileForm.tsx        (User profile editing - uses user.updateProfile)
+│   ├── PasswordChangeForm.tsx (Password change - uses user.changePassword)
+│   └── UserPreferencesForm.tsx (User preferences - uses user.updatePreferences)
 ├── characters/                (Character management)
-│   ├── CharacterList.tsx      (List of characters)
+│   ├── CharacterList.tsx      (List of characters - uses character.getAllByProject)
 │   ├── CharacterCard.tsx      (Individual character display)
-│   ├── CharacterForm.tsx      (Character creation/editing)
-│   ├── CharacterRelationships.tsx (Relationship management)
-│   ├── CharacterAttributes.tsx (Character attributes editing)
-│   └── CharacterGenerationForm.tsx (AI character generation)
+│   ├── CharacterForm.tsx      (Character creation/editing - uses character.create & character.update)
+│   ├── CharacterDetail.tsx    (View character details - uses character.getById)
+│   └── CharacterDelete.tsx    (Delete character - uses character.delete)
 ├── projects/                  (Project management)
-│   ├── ProjectList.tsx        (List of projects)
+│   ├── ProjectList.tsx        (List of projects - uses project.getAllByUser)
 │   ├── ProjectCard.tsx        (Individual project display)
-│   ├── ProjectForm.tsx        (Project creation/editing)
-│   ├── ProjectCollaborators.tsx (Collaborator management)
-│   └── ProjectSettings.tsx    (Project settings)
+│   ├── ProjectForm.tsx        (Project creation/editing - uses project.create & project.update)
+│   ├── ProjectDetail.tsx      (View project details - uses project.getById)
+│   ├── ProjectDelete.tsx      (Delete project - uses project.delete)
+│   └── ProjectStats.tsx       (Project statistics - uses project.getStats)
 ├── settings/                  (Setting management)
-│   ├── SettingList.tsx        (List of settings)
+│   ├── SettingList.tsx        (List of settings - uses setting.getAllByProject)
 │   ├── SettingCard.tsx        (Individual setting display)
-│   ├── SettingForm.tsx        (Setting creation/editing)
-│   ├── MapEditor.tsx          (Interactive map editor)
-│   └── SettingGenerationForm.tsx (AI setting generation)
+│   ├── SettingForm.tsx        (Setting creation/editing - uses setting.create & setting.update)
+│   ├── SettingDetail.tsx      (View setting details - uses setting.getById)
+│   └── SettingDelete.tsx      (Delete setting - uses setting.delete)
 ├── plots/                     (Plot management)
-│   ├── PlotList.tsx           (List of plots)
+│   ├── PlotList.tsx           (List of plots - uses plot.getAllByProject)
 │   ├── PlotCard.tsx           (Individual plot display)
-│   ├── PlotForm.tsx           (Plot creation/editing)
-│   ├── PlotStructureVisualizer.tsx (Plot structure visualization)
-│   ├── PlotPointEditor.tsx    (Plot point editing)
-│   └── PlotGenerationForm.tsx (AI plot generation)
+│   ├── PlotForm.tsx           (Plot creation/editing - uses plot.create & plot.update)
+│   ├── PlotDetail.tsx         (View plot details - uses plot.getById)
+│   └── PlotDelete.tsx         (Delete plot - uses plot.delete)
 ├── chapters/                  (Chapter management)
-│   ├── ChapterList.tsx        (List of chapters)
+│   ├── ChapterList.tsx        (List of chapters - uses chapter.getAllByProject)
 │   ├── ChapterCard.tsx        (Individual chapter display)
-│   ├── ChapterEditor.tsx      (Rich text editor for chapters)
-│   ├── ChapterOutline.tsx     (Chapter outlining)
-│   └── ChapterGenerationForm.tsx (AI chapter generation)
+│   ├── ChapterEditor.tsx      (Rich text editor for chapters - uses chapter.updateContent)
+│   ├── ChapterDetail.tsx      (View chapter details - uses chapter.getById)
+│   ├── ChapterForm.tsx        (Chapter creation/editing - uses chapter.create & chapter.update)
+│   ├── ChapterDelete.tsx      (Delete chapter - uses chapter.delete)
+│   └── ChapterReorderTool.tsx (Reorder chapters - uses chapter.reorderChapters)
 └── exports/                   (Export functionality)
-    ├── ExportList.tsx         (List of exports)
-    ├── ExportForm.tsx         (Export configuration)
-    ├── ExportPreview.tsx      (Preview of export)
-    └── ExportFormatSettings.tsx (Format-specific settings)
+    ├── ExportList.tsx         (List of exports - uses export.getAllByProject)
+    ├── ExportForm.tsx         (Export configuration - uses export.createExport)
+    ├── ExportDetail.tsx       (View export details - uses export.getExportById)
+    ├── ExportDelete.tsx       (Delete export - uses export.deleteExport)
+    └── ExportDownload.tsx     (Download export - uses export.downloadExport)
 ```
 
 ### 2. Layout Components
@@ -121,27 +141,22 @@ src/components/common/
 ```
 
 ### 4. UI Components (shadcn/Radix)
-```
-src/components/ui/
-├── Button.tsx          (Button component)
-├── Card.tsx            (Card container)
-├── Input.tsx           (Text input)
-├── Select.tsx          (Select dropdown)
-├── TextArea.tsx        (Multi-line text input)
-├── Checkbox.tsx        (Checkbox input)
-├── RadioGroup.tsx      (Radio button group)
-├── Toggle.tsx          (Toggle switch)
-├── Dialog.tsx          (Modal dialog)
-├── Tabs.tsx            (Tabbed interface)
-├── Alert.tsx           (Alert message)
-├── Toast.tsx           (Toast notifications)
-├── DropdownMenu.tsx    (Dropdown menu)
-├── Avatar.tsx          (User avatar)
-├── Badge.tsx           (Status badge)
-├── ProgressBar.tsx     (Progress indicator)
-├── Spinner.tsx         (Loading spinner)
-└── Tooltip.tsx         (Tooltip for elements)
-```
+Our UI components are primarily based on shadcn/UI, which uses Radix UI primitives. These components are already implemented in `src/components/ui/` and include:
+
+- Accordion, Alert, AlertDialog, AspectRatio, Avatar
+- Badge, Breadcrumb, Button
+- Calendar, Card, Carousel, Chart, Checkbox, Collapsible, Command, ContextMenu
+- Dialog, Drawer, DropdownMenu
+- Form
+- HoverCard
+- Input
+- Label
+- Menubar
+- NavigationMenu
+- Pagination, Popover, Progress
+- RadioGroup, Resizable
+- ScrollArea, Select, Separator, Sheet, Sidebar, Skeleton, Slider, Switch
+- Table, Tabs, Textarea, Toggle, ToggleGroup, Tooltip
 
 ### 5. Page Components
 ```
@@ -178,384 +193,147 @@ src/pages/
     └── ExportCreatePage.tsx
 ```
 
-### 6. Services (API Integration)
-```
-src/services/
-├── api.ts              (Base API client)
-├── auth.service.ts     (Authentication service)
-├── project.service.ts  (Project management service)
-├── character.service.ts (Character management service)
-├── setting.service.ts  (Setting management service)
-├── plot.service.ts     (Plot management service)
-├── chapter.service.ts  (Chapter management service)
-├── export.service.ts   (Export functionality service)
-└── ai.service.ts       (AI integration service)
-```
+## API Service Hooks
 
-### 7. Custom Hooks
+Based on our implemented backend, we have the following custom hooks for API integration:
+
 ```
 src/hooks/
-├── useAuth.ts          (Authentication hooks)
-├── useProjects.ts      (Project management hooks)
-├── useCharacters.ts    (Character management hooks)
-├── useSettings.ts      (Setting management hooks)
-├── usePlots.ts         (Plot management hooks)
-├── useChapters.ts      (Chapter management hooks)
-├── useExports.ts       (Export functionality hooks)
-├── useForm.ts          (Form handling hooks)
-├── useToast.ts         (Toast notification hooks)
-└── useAI.ts            (AI integration hooks)
+├── useAuthService.ts     (Authentication endpoints - auth.*)
+├── useUserService.ts     (User profile endpoints - user.*)
+├── useProjectService.ts  (Project management endpoints - project.*)
+├── useCharacterService.ts (Character management endpoints - character.*)
+├── useSettingService.ts  (Setting management endpoints - setting.*)
+├── usePlotService.ts     (Plot management endpoints - plot.*)
+├── useChapterService.ts  (Chapter management endpoints - chapter.*)
+├── useExportService.ts   (Export functionality endpoints - export.*)
+├── useAIService.ts       (AI integration endpoints - ai.*)
+├── useToast.ts           (Toast notifications)
+├── use-mobile.ts         (Responsive design helper)
+└── ui/                   (UI-specific hooks)
 ```
 
-## Core UI Components (shadcn/Radix)
+Each service hook connects to the corresponding tRPC endpoints in our backend API.
 
-We'll leverage shadcn/UI components based on Radix UI primitives, organized in the `src/components/ui/` directory:
+## API Service Integration
 
-1. **Layout Components**:
-   - Card
-   - Sheet
-   - Tabs
-   - Accordion
-   - ScrollArea
+The frontend integrates with the backend tRPC API endpoints as defined in our `src/backend/src/routers/_app.ts`:
 
-2. **Form Components**:
-   - Form and form elements
-   - Input
-   - Textarea
-   - Select
-   - RadioGroup
-   - Checkbox
-   - Switch
-   - Slider
+1. **Authentication Services** - `auth.*` endpoints
+   - `auth.register` - User registration
+   - `auth.login` - User login
+   - `auth.verifyToken` - Token verification
 
-3. **Feedback Components**:
-   - Alert
-   - Toast
-   - Progress
-   - Skeleton
+2. **User Services** - `user.*` endpoints
+   - `user.getProfile` - Get user profile
+   - `user.updateProfile` - Update profile information
+   - `user.changePassword` - Change password
+   - `user.updatePreferences` - Update user preferences
 
-4. **Navigation Components**:
-   - NavigationMenu
-   - Breadcrumb
-   - Pagination
-   - Command
+3. **Project Services** - `project.*` endpoints
+   - `project.create` - Create project
+   - `project.getById` - Get project details
+   - `project.update` - Update project
+   - `project.delete` - Delete project
+   - `project.getAllByUser` - Get all user projects
+   - `project.getStats` - Project statistics
 
-5. **Overlay Components**:
-   - Dialog
-   - Popover
-   - HoverCard
-   - DropdownMenu
+4. **Character Services** - `character.*` endpoints
+   - `character.create` - Create character
+   - `character.getById` - Get character details
+   - `character.update` - Update character
+   - `character.delete` - Delete character
+   - `character.getAllByProject` - Get all characters in project
 
-6. **Data Display Components**:
-   - Table
-   - Avatar
-   - Badge
-   - Separator
+5. **Setting Services** - `setting.*` endpoints
+   - `setting.create` - Create setting
+   - `setting.getById` - Get setting details
+   - `setting.update` - Update setting
+   - `setting.delete` - Delete setting
+   - `setting.getAllByProject` - Get all settings in project
 
-## Feature Component Details
+6. **Plot Services** - `plot.*` endpoints
+   - `plot.create` - Create plot
+   - `plot.getById` - Get plot details
+   - `plot.update` - Update plot
+   - `plot.delete` - Delete plot
+   - `plot.getAllByProject` - Get all plots in project
 
-For detailed specifications of feature components, see the separate document: `projectDocs/12-FeatureComponentsDetail.md`
+7. **Chapter Services** - `chapter.*` endpoints
+   - `chapter.create` - Create chapter
+   - `chapter.getById` - Get chapter details
+   - `chapter.update` - Update chapter
+   - `chapter.delete` - Delete chapter
+   - `chapter.getAllByProject` - Get all chapters in project
+   - `chapter.updateContent` - Update chapter content
+   - `chapter.reorderChapters` - Change chapter order
 
-## UI/UX Design Considerations
+8. **AI Services** - `ai.*` endpoints
+   - `ai.generateText` - Generate text
+   - `ai.continueText` - Continue text
+   - `ai.getSuggestions` - Get writing suggestions
+   - `ai.analyzeText` - Analyze text
 
-### Responsive Design
+9. **Export Services** - `export.*` endpoints
+   - `export.createExport` - Create export
+   - `export.getExportById` - Get export details
+   - `export.getAllByProject` - Get all exports for project
+   - `export.deleteExport` - Delete export
+   - `export.downloadExport` - Download export file
 
-The application must be fully responsive across all device sizes:
+## Implementation Phases (Revised)
 
-1. **Mobile (< 640px)**
-   - Single column layout
-   - Collapsed sidebar with hamburger menu
-   - Simplified cards and forms
-   - Touch-friendly inputs and buttons
-
-2. **Tablet (640px - 1024px)**
-   - Optional sidebar based on available space
-   - Two-column layout where appropriate
-   - Grid views for lists (2-3 cards per row)
-
-3. **Desktop (> 1024px)**
-   - Full sidebar always visible
-   - Multi-column layouts
-   - Grid views for lists (3-4 cards per row)
-   - Advanced editing tools visible
-
-### Navigation Structure
-
-1. **Global Navigation** (Header)
-   - Application logo/home link
-   - User profile dropdown
-   - Global search
-   - Notifications
-   - Theme toggle
-
-2. **Project Navigation** (Sidebar)
-   - Dashboard link
-   - Projects list
-   - Project-specific links when in a project context
-
-3. **Content Navigation**
-   - Breadcrumb trails
-   - Tabs for different sections
-   - Back/forward buttons where appropriate
-
-### Accessibility Considerations
-
-1. **Keyboard Navigation**
-   - All interactive elements must be focusable
-   - Logical tab order
-   - Keyboard shortcuts for common actions
-
-2. **Screen Readers**
-   - Proper ARIA attributes
-   - Alt text for images
-   - Descriptive labels
-   - Meaningful headings
-
-3. **Visual Accessibility**
-   - High contrast modes
-   - Text scalability
-   - Color blindness considerations
-   - Focus indicators
-
-### Loading States
-
-1. **Initial Loading**
-   - Full-page loading spinner
-   - Progressive content loading where possible
-
-2. **Content Loading**
-   - Skeleton loaders for cards and lists
-   - Progress indicators for long operations
-
-3. **Form Submission**
-   - Disable buttons during submission
-   - Show progress indicators
-   - Clear feedback on success or failure
-
-## API Services Integration
-
-### Base API Client
-
-```typescript
-// src/services/api.ts
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add auth token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Handle auth errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-export default api;
-```
-
-### Feature-Specific Services
-
-Services will be created for each major feature area, aligning with our backend endpoints:
-
-1. **Authentication Service** - `/api/auth/*` endpoints
-2. **Project Service** - `/api/projects/*` endpoints
-3. **Character Service** - `/api/projects/:projectId/characters/*` endpoints
-4. **Setting Service** - `/api/projects/:projectId/settings/*` endpoints
-5. **Plot Service** - `/api/projects/:projectId/plots/*` endpoints
-6. **Chapter Service** - `/api/projects/:projectId/chapters/*` endpoints
-7. **Export Service** - `/api/projects/:projectId/exports/*` endpoints
-8. **AI Service** - `/api/ai/*` endpoints
-
-## AI Integration Strategy
-
-The application will support dual AI providers to optimize cost and functionality:
-
-### 1. AI Provider Integration
-
-```typescript
-// src/services/ai.service.ts
-import api from './api';
-
-export enum AIProvider {
-  OPENAI = 'openai',
-  DEEPSEEK = 'deepseek'
-}
-
-export const aiService = {
-  // Text generation with provider selection
-  generateText: async (prompt, options = {}) => {
-    const { provider = AIProvider.DEEPSEEK, ...otherOptions } = options;
-    return await api.post('/ai/generate', {
-      prompt,
-      provider,
-      ...otherOptions
-    });
-  },
-  
-  // Image generation (OpenAI only)
-  generateImage: async (prompt, options = {}) => {
-    return await api.post('/ai/generate-image', {
-      prompt,
-      provider: AIProvider.OPENAI, // Only OpenAI supports image generation
-      ...options
-    });
-  },
-  
-  // Save a generation
-  saveGeneration: async (generationId, metadata = {}) => {
-    return await api.put(`/ai/generations/${generationId}/save`, metadata);
-  },
-  
-  // Get cost estimate for a generation
-  getCostEstimate: async (prompt, options = {}) => {
-    const { provider = AIProvider.DEEPSEEK, ...otherOptions } = options;
-    return await api.post('/ai/estimate-cost', {
-      prompt,
-      provider,
-      ...otherOptions
-    });
-  }
-};
-```
-
-### 2. AI Provider Selection Strategy
-
-The application will intelligently choose the appropriate AI provider:
-
-1. **Deepseek LLM**
-   - Used for content generation that requires large context windows
-   - Preferred for most text generation tasks due to lower cost
-   - Default provider for character, setting, plot, and chapter generation
-   - Better for handling longer context and detailed writing tasks
-
-2. **OpenAI**
-   - Used for image generation (Deepseek doesn't offer this)
-   - Used when specific capabilities only available in OpenAI are needed
-   - Better for certain specialized tasks (if determined through testing)
-
-3. **User Choice**
-   - Advanced users can manually select the provider
-   - Cost estimates shown before generation
-   - Quality comparison options available
-
-### 3. AI Feature Components
-
-Special components will be needed for the AI integration:
-
-1. **AIProviderSelector**
-   - Allows selection between available AI providers
-   - Shows capabilities and cost comparison
-   - Remembers user preferences
-
-2. **AIGenerationForm**
-   - Adapts based on selected provider
-   - Shows estimated cost before submission
-   - Handles provider-specific parameters
-
-3. **AIResultComparison**
-   - Allows comparing results from different providers
-   - Shows cost and quality metrics
-   - Helps users make informed decisions
-
-## Context Providers
-
-The application will use several context providers for state management:
-
-1. **AuthContext** - User authentication state
-2. **ProjectContext** - Current project data
-3. **UIContext** - UI state (theme, sidebar, etc.)
-4. **AIContext** - AI provider preferences and history
-
-## Implementation Phases
-
-### Phase 1: Core Infrastructure & Auth
+### Phase 1: Core Infrastructure & Auth (Completed)
 - Layout components (Header, Sidebar, Footer)
 - Authentication (Login, Register)
-- Base API services
-- Context providers
+- Base API services 
+- User profile management
 
-### Phase 2: Project Management
+### Phase 2: Project Management (In Progress)
 - Project listing and creation
-- Project details and settings
-- Collaborator management
+- Project details and editing
+- Project statistics and dashboard
 
 ### Phase 3: Content Creation
 - Character management
 - Setting management
 - Plot management
-- Chapter management
+- Chapter management and editor
 
 ### Phase 4: AI Integration & Export
-- AI generation features with dual providers
+- AI generation features
 - Export functionality
 - Final integration and optimization
 
-## Testing Strategy
+## UI/UX Design Implementation
 
-### 1. Component Testing
-- Unit tests for individual components
-- Storybook for component visualization and interaction testing
-- Accessibility testing for all components
+The UI/UX design as outlined in our `05-FrontendUIDesign.md` document has been implemented with the following key elements:
 
-### 2. Integration Testing
-- Test API service integration with mock backend
-- Test context providers and component interaction
-- Test routing and navigation
+1. **Color Palette** - Using the defined primary (Indigo), secondary (Pink), and accent (Teal) colors
+2. **Typography** - Implementing Inter as the primary font and Lexend for headings
+3. **Component Design** - Using shadcn/UI with customizations for kid-friendly UI
+4. **Responsive Design** - Following the breakpoints defined in the design document
 
-### 3. End-to-End Testing
-- Full user flow testing
-- Cross-browser and device testing
-- Performance testing
-
-### 4. AI Integration Testing
-- Test both AI providers with various inputs
-- Test fallback mechanisms
-- Test cost optimization strategies
+All components adhere to the accessibility guidelines outlined in the design document, ensuring keyboard navigation, screen reader support, and visual accessibility features.
 
 ## Next Steps
 
-1. **Complete Layout Implementation**
-   - Finalize MainLayout, Header, Sidebar, Footer
-   - Implement responsive behavior
+1. **Complete Project Management Features**
+   - Finish Project Statistics component
+   - Implement Project Collaborators feature
 
-2. **API Service Layer**
-   - Create base API client
-   - Implement authentication service
-   - Implement project service
+2. **Implement Content Creation Components**
+   - Build Character Workshop components
+   - Build Setting components
+   - Develop Plot Architect components
+   - Create Chapter Forge editor
 
-3. **Authentication UI**
-   - Implement login and registration forms
-   - Create authentication context
-   - Add protected route handling
+3. **Develop AI Integration**
+   - Build AI generation forms
+   - Implement AI suggestions
+   - Create text analysis tools
 
-4. **Project Management UI**
-   - Implement project listing and creation
-   - Create project details view
-   
-5. **AI Integration**
-   - Implement AI service with provider selection
-   - Create AI generation components
-   - Test cost optimization strategies 
+4. **Create Export Functionality**
+   - Implement export configuration form
+   - Build export preview
+   - Add download functionality 

@@ -1,13 +1,21 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authApi } from '../../lib/api';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { getErrorMessage } from '../../utils/errorHandler';
+import { useToast } from '../../hooks/useToast';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const toast = useToast();
+
+  // Get the redirect path from the location state (if exists)
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,11 +23,13 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await authApi.login({ email, password });
-      localStorage.setItem('auth-token', response.data.token);
-      navigate('/dashboard');
+      await login(email, password);
+      toast.success("Login successful! Welcome back.");
+      navigate(from, { replace: true });
     } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      const errorMessage = getErrorMessage(err) || 'Invalid email or password. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);
@@ -66,12 +76,12 @@ export default function Login() {
               >
                 Password
               </label>
-              <a
-                href="#"
+              <Link
+                to="/forgot-password"
                 className="text-xs text-primary underline-offset-4 hover:underline"
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
             <input
               id="password"
@@ -92,12 +102,12 @@ export default function Login() {
         </form>
         <div className="text-center text-sm">
           Don't have an account?{' '}
-          <a
-            href="/register"
+          <Link
+            to="/register"
             className="text-primary underline-offset-4 hover:underline"
           >
             Sign up
-          </a>
+          </Link>
         </div>
       </div>
     </div>

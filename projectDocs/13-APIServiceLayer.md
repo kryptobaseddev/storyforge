@@ -27,6 +27,7 @@ src/
 └── services/
     ├── trpc.ts                 # tRPC client configuration
     ├── hooks/                  # Custom React hooks wrapping tRPC procedures
+    │   ├── user.hooks.ts       # User-related hooks
     │   ├── auth.hooks.ts       # Authentication-related hooks
     │   ├── project.hooks.ts    # Project-related hooks
     │   ├── character.hooks.ts  # Character-related hooks
@@ -36,8 +37,15 @@ src/
     │   ├── export.hooks.ts     # Export-related hooks
     │   └── ai.hooks.ts         # AI generation hooks
     └── types/                  # Shared TypeScript type definitions
-        ├── auth.types.ts
-        ├── project.types.ts
+        ├── user.types.ts       # User-related types
+        ├── auth.types.ts       # Authentication-related types
+        ├── project.types.ts    # Project-related types
+        ├── character.types.ts # Character-related types
+        ├── setting.types.ts    # Setting-related types
+        ├── plot.types.ts       # Plot-related types
+        ├── chapter.types.ts    # Chapter-related types
+        ├── export.types.ts     # Export-related types
+        └── ai.types.ts         # AI-related types
         └── ...
 ```
 
@@ -170,6 +178,156 @@ export const useAuth = () => {
     isRegistering: registerMutation.isLoading,
     isLoggingIn: loginMutation.isLoading,
     isUpdatingProfile: updateProfileMutation.isLoading,
+  };
+};
+```
+
+## User Service
+
+The user service handles user creation, retrieval, updating, and deletion, as well as user preferences management using tRPC procedures.
+Will need to review and refactor this to fit the needs of the our application.
+
+### File: `src/services/hooks/user.hooks.ts`
+
+```typescript
+import { trpc } from '../trpc';
+
+// User list hook
+export const useUsers = () => {
+  const { data: users, isLoading, error } = trpc.user.getUsers.useQuery();
+
+  return {
+    users,
+    isLoading,
+    error,
+  };
+};
+
+// Single user hook
+export const useUser = (userId: string | undefined) => {
+  const { data: user, isLoading, error } = trpc.user.getUserById.useQuery(
+    { id: userId! },
+    { enabled: !!userId }
+  );
+
+  return {
+    user,
+    isLoading,
+    error,
+  };
+};
+
+// Create user mutation
+export const useCreateUser = () => {
+  const { mutateAsync, isLoading } = trpc.user.createUser.useMutation();
+
+  return {
+    createUser: mutateAsync,
+    isCreating: isLoading,
+  };
+};
+
+// Update user mutation
+export const useUpdateUser = () => {
+  const { mutateAsync, isLoading } = trpc.user.updateUser.useMutation();
+
+  return {
+    updateUser: mutateAsync,
+    isUpdating: isLoading,
+  };
+};
+
+// Delete user mutation    
+export const useDeleteUser = () => {
+  const { mutateAsync, isLoading } = trpc.user.deleteUser.useMutation();
+
+  return {
+    deleteUser: mutateAsync,
+    isDeleting: isLoading,
+  };
+};    
+
+// User preferences hook
+export const useUserPreferences = () => {
+  const { data: preferences, isLoading, error } = trpc.user.getUserPreferences.useQuery();
+
+  return {    
+    preferences,
+    isLoading,
+    error,
+  };
+};
+
+// Update user preferences mutation
+export const useUpdateUserPreferences = () => {
+  const { mutateAsync, isLoading } = trpc.user.updateUserPreferences.useMutation();
+
+  return {
+    updateUserPreferences: mutateAsync,
+    isUpdatingPreferences: isLoading,
+  };
+};
+
+// User roles hook
+export const useUserRoles = () => {
+  const { data: roles, isLoading, error } = trpc.user.getUserRoles.useQuery();
+
+  return {    
+    roles,
+    isLoading,
+    error,
+  };
+};    
+
+// User permissions hook
+export const useUserPermissions = () => {
+  const { data: permissions, isLoading, error } = trpc.user.getUserPermissions.useQuery();
+
+  return {    
+    permissions,
+    isLoading,
+    error,
+  };
+};
+
+// User role assignments hook
+export const useUserRoleAssignments = () => {
+  const { data: roleAssignments, isLoading, error } = trpc.user.getUserRoleAssignments.useQuery();
+
+  return {        
+    roleAssignments,
+    isLoading,
+    error,
+  };
+};
+
+// User role assignments mutation
+export const useUserRoleAssignmentsMutation = () => {
+  const { mutateAsync, isLoading } = trpc.user.updateUserRoleAssignments.useMutation();
+
+  return {
+    updateUserRoleAssignments: mutateAsync,
+    isUpdatingRoleAssignments: isLoading,
+  };
+};
+
+// User role assignments mutation
+export const useUserRoleAssignmentsMutation = () => {
+  const { mutateAsync, isLoading } = trpc.user.updateUserRoleAssignments.useMutation();
+
+  return {
+    updateUserRoleAssignments: mutateAsync,
+    isUpdatingRoleAssignments: isLoading,
+  };
+};
+
+// User role assignments mutation
+export const useUserRoleAssignmentsMutation = () => {
+  const { mutateAsync, isLoading } = trpc.user.updateUserRoleAssignments.useMutation();
+
+  return {
+    updateUserRoleAssignments: mutateAsync,
+    isUpdatingRoleAssignments: isLoading,
   };
 };
 ```
@@ -1019,14 +1177,15 @@ export const useApiError = () => {
 The API service layer should be implemented in the following order:
 
 1. **tRPC Client Setup**: Implement the core tRPC client configuration.
-2. **Authentication Hooks**: Implement user authentication functionality.
-3. **Project Hooks**: Implement project management functionality.
-4. **Character Hooks**: Implement character management functionality.
-5. **Setting Hooks**: Implement setting management functionality.
-6. **Plot Hooks**: Implement plot management functionality.
-7. **Chapter Hooks**: Implement chapter management functionality.
-8. **Export Hooks**: Implement export functionality.
-9. **AI Hooks**: Implement AI generation functionality.
+2. **User Hooks**: Implement user management functionality.
+3. **Authentication Hooks**: Implement user authentication functionality.
+4. **Project Hooks**: Implement project management functionality.
+5. **Character Hooks**: Implement character management functionality.
+6. **Setting Hooks**: Implement setting management functionality.
+7. **Plot Hooks**: Implement plot management functionality.
+8. **Chapter Hooks**: Implement chapter management functionality.
+9. **Export Hooks**: Implement export functionality.
+10. **AI Hooks**: Implement AI generation functionality.
 
 ### Implementation Steps
 
