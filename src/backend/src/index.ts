@@ -9,8 +9,8 @@ import { createOpenApiExpressMiddleware } from 'trpc-openapi';
 import swaggerUi from 'swagger-ui-express';
 
 // Import tRPC router and context
-import { appRouter } from './routers/_app';
-import { createTRPCContext } from './trpc';
+import { appRouter } from './trpc/router';
+import { createContext } from './trpc/context';
 
 // Import OpenAPI document
 import { openApiDocument } from './openapi';
@@ -121,7 +121,12 @@ const connectDB = async () => {
   }
 };
 
-// Health check route
+// Routes
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to StoryForge API' });
+});
+
+// Health check route - Keep this before OpenAPI middleware
 app.get('/api/health', (req, res) => {
   // Check MongoDB connection
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
@@ -138,16 +143,11 @@ app.get('/api/health', (req, res) => {
         lastReconnectAttempt: dbConnection.lastReconnectAttempt
       },
       api: {
-        status: 'running',
+        status: 'ok',
         uptime: process.uptime()
       }
     }
   });
-});
-
-// Routes
-app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to StoryForge API' });
 });
 
 // tRPC API endpoint
@@ -155,21 +155,21 @@ app.use(
   '/api/trpc',
   createExpressMiddleware({
     router: appRouter,
-    createContext: createTRPCContext,
+    createContext: createContext,
   })
 );
+
+// Swagger UI - Keep this before the OpenAPI middleware
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 // OpenAPI/REST compatibility layer
 app.use(
   '/api',
   createOpenApiExpressMiddleware({
     router: appRouter,
-    createContext: createTRPCContext,
+    createContext: createContext,
   })
 );
-
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -30,5 +30,5 @@ export const openApiDocument = generateOpenApiDocument(appRouter, {
       bearerFormat: 'JWT'
     }
   },
-  docsUrl: '/api-docs'
+  docsUrl: '/api/docs'
 }); 

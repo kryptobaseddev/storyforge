@@ -65,7 +65,7 @@ export const userSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   age: z.number().optional(),
-  avatar: z.string().optional(),
+  avatar: z.string().url().optional(),
   preferences: userPreferencesSchema,
   createdAt: z.date(),
   updatedAt: z.date()

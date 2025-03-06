@@ -23,11 +23,22 @@ export const projectRouter = router({
    * Create a new project
    */
   create: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/projects',
+        tags: ['projects'],
+        summary: 'Create a new project',
+      },
+    })
     .input(createProjectSchema)
     .output(projectSchema)
     .mutation(async ({ ctx, input }) => {
       try {
         const userId = ctx.user.id;
+        
+        // Log input for debugging
+        console.log('Creating project with input:', JSON.stringify(input));
         
         const project = new ProjectModel({
           ...input,
@@ -41,9 +52,22 @@ export const projectRouter = router({
         return projectToResponse(project);
       } catch (error) {
         console.error('Project creation error:', error);
+        
+        // Provide more specific error message
+        if (error instanceof Error) {
+          if (error.message.includes('validation failed')) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: `Validation error: ${error.message}`,
+              cause: error
+            });
+          }
+        }
+        
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to create project',
+          cause: error
         });
       }
     }),
@@ -52,6 +76,15 @@ export const projectRouter = router({
    * Get all projects for the current user
    */
   getAll: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/projects',
+        tags: ['projects'],
+        summary: 'Get all projects for the current user',
+      },
+    })
+    .input(z.object({}).strict())
     .output(projectListSchema)
     .query(async ({ ctx }) => {
       try {
@@ -79,6 +112,14 @@ export const projectRouter = router({
    * Get a project by ID
    */
   getById: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/projects/{id}',
+        tags: ['projects'],
+        summary: 'Get a project by ID',
+      },
+    })
     .input(z.object({ id: z.string() }))
     .output(projectSchema)
     .query(async ({ ctx, input }) => {
@@ -124,6 +165,14 @@ export const projectRouter = router({
    * Update a project
    */
   update: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'PUT',
+        path: '/projects/{id}',
+        tags: ['projects'],
+        summary: 'Update a project',
+      },
+    })
     .input(z.object({
       id: z.string(),
       data: updateProjectSchema
@@ -176,6 +225,14 @@ export const projectRouter = router({
    * Delete a project
    */
   delete: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'DELETE',
+        path: '/projects/{id}',
+        tags: ['projects'],
+        summary: 'Delete a project',
+      },
+    })
     .input(z.object({ id: z.string() }))
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
@@ -206,9 +263,7 @@ export const projectRouter = router({
         
         return { success: true };
       } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
+        if (error instanceof TRPCError) throw error;
         
         console.error('Delete project error:', error);
         throw new TRPCError({
@@ -222,6 +277,14 @@ export const projectRouter = router({
    * Add a collaborator to a project
    */
   addCollaborator: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/projects/{projectId}/collaborators',
+        tags: ['projects', 'collaborators'],
+        summary: 'Add a collaborator to a project',
+      },
+    })
     .input(z.object({
       projectId: z.string(),
       collaborator: addCollaboratorSchema
@@ -249,19 +312,19 @@ export const projectRouter = router({
           });
         }
         
-        // Check if user is already a collaborator
-        const existingCollaborator = project.collaborators.find(
-          (c: any) => c.userId.toString() === collaborator.userId
+        // Check if collaborator already exists
+        const collaboratorExists = project.collaborators.some(
+          c => c.userId.toString() === collaborator.userId
         );
         
-        if (existingCollaborator) {
+        if (collaboratorExists) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
-            message: 'User is already a collaborator',
+            message: 'Collaborator already exists',
           });
         }
         
-        // Add new collaborator
+        // Add collaborator
         project.collaborators.push({
           userId: new ObjectId(collaborator.userId),
           role: collaborator.role
@@ -269,14 +332,12 @@ export const projectRouter = router({
         
         await project.save();
         
-        return project.collaborators.map((c: any) => ({
+        return project.collaborators.map(c => ({
           userId: c.userId.toString(),
           role: c.role
         }));
       } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
+        if (error instanceof TRPCError) throw error;
         
         console.error('Add collaborator error:', error);
         throw new TRPCError({

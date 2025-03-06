@@ -16,6 +16,7 @@ import {
   UserPreferences
 } from '../schemas/user.schema';
 import { Document } from 'mongoose';
+import { z } from 'zod';
 
 // Helper function to convert user document to response shape
 const formatUserResponse = (user: IUser & Document) => {
@@ -25,8 +26,8 @@ const formatUserResponse = (user: IUser & Document) => {
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
-    age: user.age,
-    avatar: user.avatar,
+    age: user.age || undefined,
+    avatar: user.avatar || undefined,
     preferences: {
       theme: user.preferences.theme as "light" | "dark" | "system",
       fontSize: user.preferences.fontSize,
@@ -37,6 +38,9 @@ const formatUserResponse = (user: IUser & Document) => {
     updatedAt: user.updatedAt
   };
 };
+
+// Empty schema for endpoints that don't need input parameters
+const emptyInputSchema = z.object({}).strict();
 
 export const userRouter = router({
   /**
@@ -51,6 +55,7 @@ export const userRouter = router({
         summary: 'Get current user profile',
       },
     })
+    .input(emptyInputSchema)
     .output(userSchema)
     .query(async ({ ctx }) => {
       const user = await User.findById(ctx.user!.id).select('-passwordHash');
@@ -178,6 +183,7 @@ export const userRouter = router({
         summary: 'Get user preferences',
       },
     })
+    .input(emptyInputSchema)
     .output(userSchema.pick({ preferences: true }))
     .query(async ({ ctx }) => {
       const user = await User.findById(ctx.user!.id).select('preferences');
