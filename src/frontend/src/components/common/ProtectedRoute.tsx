@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/useToast';
@@ -15,15 +15,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const toast = useToast();
   const location = useLocation();
 
-  // Debug logging
-  useEffect(() => {
-    console.log('ProtectedRoute rendered at path:', location.pathname);
-    console.log('ProtectedRoute isAuthenticated:', isAuthenticated);
-    console.log('ProtectedRoute isLoading:', isLoading);
-  }, [location.pathname, isAuthenticated, isLoading]);
-
   // Show notification when redirecting to login
-  useEffect(() => {
+  React.useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast.error('You must be logged in to access this page');
     }
@@ -39,12 +32,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
-  }
-
-  // For debugging purposes, always allow access in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Development mode: bypassing authentication check');
-    return <Outlet />;
   }
 
   // Redirect to login if not authenticated

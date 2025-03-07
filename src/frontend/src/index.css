@@ -4,37 +4,59 @@
 
 @layer base {
   :root {
-    /* Theme colors in HSL format */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
+    /* Color Palette - Light Mode */
+    --primary: 240 84% 67%;          /* #6366f1 - Indigo */
+    --primary-light: 239 84% 82%;    /* #a5b4fc */
+    --primary-dark: 243 75% 50%;     /* #4338ca */
+    
+    --secondary: 330 84% 60%;        /* #ec4899 - Pink */
+    --secondary-light: 330 84% 80%;  /* #f9a8d4 */
+    --secondary-dark: 330 84% 42%;   /* #be185d */
+    
+    --accent: 173 79% 40%;           /* #14b8a6 - Teal */
+    --accent-light: 173 79% 63%;     /* #5eead4 */
+    --accent-dark: 173 79% 26%;      /* #0f766e */
+    
+    --background: 210 20% 98%;       /* #f9fafb */
+    --foreground: 222 47% 11%;       /* #111827 */
+    
+    --muted: 220 14% 96%;            /* #f3f4f6 */
+    --muted-foreground: 220 9% 46%;  /* #6b7280 */
+    
+    --card: 0 0% 100%;               /* #ffffff */
+    --card-foreground: 222 47% 11%;  /* #111827 */
+    
+    --border: 220 13% 91%;           /* #e5e7eb */
+    --input: 220 13% 91%;            /* #e5e7eb */
+    
+    --success: 160 84% 39%;          /* #10b981 - Emerald */
+    --warning: 38 92% 50%;           /* #f59e0b - Amber */
+    --error: 0 84% 60%;              /* #ef4444 - Red */
+    
+    /* Typography */
+    --font-primary: 'Inter', system-ui, sans-serif;
+    --font-heading: 'Lexend', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    
+    --font-size-xs: 0.75rem;   /* 12px */
+    --font-size-sm: 0.875rem;  /* 14px */
+    --font-size-base: 1rem;    /* 16px */
+    --font-size-lg: 1.125rem;  /* 18px */
+    --font-size-xl: 1.25rem;   /* 20px */
+    --font-size-2xl: 1.5rem;   /* 24px */
+    --font-size-3xl: 1.875rem; /* 30px */
+    --font-size-4xl: 2.25rem;  /* 36px */
+    
+    /* Foreground colors for accessibility */
+    --primary-foreground: 0 0% 100%;
+    --secondary-foreground: 0 0% 100%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --ring: var(--primary);
     --radius: 0.5rem;
-
+    
     /* ShadCN Sidebar Variables */
     --sidebar: var(--background);
     --sidebar-foreground: var(--foreground);
@@ -44,33 +66,41 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* Color Palette - Dark Mode */
+    --primary: 240 84% 67%;          /* #6366f1 - Indigo */
+    --primary-light: 239 84% 82%;    /* #a5b4fc */
+    --primary-dark: 243 75% 50%;     /* #4338ca */
+    
+    --secondary: 330 84% 60%;        /* #ec4899 - Pink */
+    --secondary-light: 330 84% 80%;  /* #f9a8d4 */
+    --secondary-dark: 330 84% 42%;   /* #be185d */
+    
+    --accent: 173 79% 40%;           /* #14b8a6 - Teal */
+    --accent-light: 173 79% 63%;     /* #5eead4 */
+    --accent-dark: 173 79% 26%;      /* #0f766e */
+    
+    --background: 222 47% 11%;       /* #111827 */
+    --foreground: 210 20% 98%;       /* #f9fafb */
+    
+    --muted: 215 28% 17%;            /* #1f2937 */
+    --muted-foreground: 215 20% 65%; /* #9ca3af */
+    
+    --card: 222 47% 11%;             /* #111827 */
+    --card-foreground: 210 20% 98%;  /* #f9fafb */
+    
+    --border: 215 28% 17%;           /* #1f2937 */
+    --input: 215 28% 17%;            /* #1f2937 */
+    
+    --success: 160 84% 39%;          /* #10b981 - Emerald */
+    --warning: 38 92% 50%;           /* #f59e0b - Amber */
+    --error: 0 84% 60%;              /* #ef4444 - Red */
+    
+    /* Foreground colors for accessibility */
+    --primary-foreground: 222 47% 11%;
+    --secondary-foreground: 0 0% 100%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 20% 98%;
     
     /* ShadCN Sidebar Variables */
     --sidebar: var(--background);
@@ -86,12 +116,12 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-primary);
     margin: 0;
     min-height: 100vh;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Lexend', system-ui, sans-serif;
+    font-family: var(--font-heading);
   }
 }
 

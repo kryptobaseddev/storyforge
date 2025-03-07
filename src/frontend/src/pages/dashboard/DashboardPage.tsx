@@ -5,9 +5,12 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../../comp
 import { useAuth } from '../../context/AuthContext';
 import { 
   PlusCircle, 
-  Clock
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useProjectService } from '../../hooks/useProjectService';
+import { Project } from '../../schemas';
 
 /**
  * Dashboard Page
@@ -18,14 +21,21 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   
-  // Simulate loading state for demonstration
+  // Get projects using the project service
+  const { getAllProjects } = useProjectService();
+  const { data: projectsData, isLoading: projectsLoading, error: projectsError } = getAllProjects();
+  
+  // Set loading state based on projects loading
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    if (!projectsLoading) {
+      // Add a small delay to ensure smooth transition
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [projectsLoading]);
 
   // Get the user's first name or username for personalized greeting
   const displayName = user?.firstName || user?.username || 'Writer';
@@ -41,6 +51,9 @@ const DashboardPage: React.FC = () => {
       href: '/dashboard'
     }
   ];
+
+  // Get recent projects (up to 3)
+  const recentProjects = projectsData?.slice(0, 3) || [];
 
   return (
     <ContentLayout 
@@ -86,27 +99,24 @@ const DashboardPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Project Cards */}
-            <ProjectCard 
-              title="Fantasy Novel" 
-              description="Epic fantasy set in a medieval world" 
-              lastEdited="2 days ago"
-              progress={45}
-            />
-            
-            <ProjectCard 
-              title="Sci-Fi Short Story" 
-              description="Near-future technology exploration" 
-              lastEdited="1 week ago"
-              progress={78}
-            />
-            
-            <ProjectCard 
-              title="Mystery Thriller" 
-              description="Small town murder mystery" 
-              lastEdited="2 weeks ago"
-              progress={23}
-            />
+            {projectsError ? (
+              <div className="col-span-full p-6 bg-destructive/10 border border-destructive/30 rounded-lg text-center">
+                <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+                <h3 className="text-lg font-medium text-destructive">Error loading projects</h3>
+                <p className="text-sm text-destructive/80 mt-1">Please try again later</p>
+              </div>
+            ) : recentProjects.length > 0 ? (
+              recentProjects.map((project) => (
+                <ProjectCard 
+                  key={project.id}
+                  project={project as unknown as Project}
+                />
+              ))
+            ) : !isLoading && (
+              <div className="col-span-full p-6 bg-muted rounded-lg text-center">
+                <p className="text-muted-foreground">No projects found. Create your first project to get started.</p>
+              </div>
+            )}
             
             {/* Create New Project Card */}
             <Card className="border-dashed border-2 hover:border-primary/50 transition-colors">
@@ -130,20 +140,25 @@ const DashboardPage: React.FC = () => {
 
 // Helper component for project cards
 interface ProjectCardProps {
-  title: string;
-  description: string;
-  lastEdited: string;
-  progress: number;
+  project: Project;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ title, description, lastEdited, progress }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+  // Format the date safely
+  const formattedDate = new Date(project.updatedAt || project.createdAt).toLocaleDateString();
+  
+  // Calculate progress (if available)
+  const progress = project.progress || 0;
+  
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
-        <CardTitle className="text-foreground">{title}</CardTitle>
+        <CardTitle className="text-foreground">{project.title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground mb-2">{description}</p>
+        <p className="text-sm text-muted-foreground mb-2">
+          {project.description || 'No description provided.'}
+        </p>
         
         {/* Progress Bar */}
         <div className="w-full bg-muted rounded-full h-2 mb-2">
@@ -155,12 +170,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ title, description, lastEdite
         
         <div className="flex items-center text-xs text-muted-foreground">
           <Clock className="h-3 w-3 mr-1" />
-          Last edited {lastEdited}
+          Last edited {formattedDate}
         </div>
       </CardContent>
       <CardFooter>
         <Button size="sm" variant="secondary" className="w-full" asChild>
-          <Link to={`/projects/${title.toLowerCase().replace(/\s+/g, '-')}`}>
+          <Link to={`/projects/${project.id}`}>
             Open Project
           </Link>
         </Button>

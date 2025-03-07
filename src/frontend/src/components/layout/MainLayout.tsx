@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import { useUI } from '../../context/UIContext';
-import DebugComponent from '../common/DebugComponent';
 
 /**
  * MainLayout component
@@ -31,9 +30,6 @@ const MainLayout: React.FC = () => {
           </div>
         </main>
       </div>
-      
-      {/* Debug Component - only visible during development */}
-      {process.env.NODE_ENV === 'development' && <DebugComponent />}
     </div>
   );
 };

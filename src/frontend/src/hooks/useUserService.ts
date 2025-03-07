@@ -1,9 +1,11 @@
 import { trpc } from '../utils/trpc';
 
 export const useUserService = () => {
+  const utils = trpc.useContext();
+
   // Get the current user's profile
   const getProfile = () => {
-    return trpc.user.getProfile.useQuery();
+    return trpc.user.getProfile.useQuery({});
   };
 
   // Update the user's profile
@@ -11,7 +13,7 @@ export const useUserService = () => {
     return trpc.user.updateProfile.useMutation({
       onSuccess: () => {
         // Invalidate the profile query to refetch data
-        trpc.user.getProfile.invalidate();
+        utils.user.getProfile.invalidate();
       },
     });
   };
@@ -21,12 +23,18 @@ export const useUserService = () => {
     return trpc.user.changePassword.useMutation();
   };
 
-  // Update user preferences
+  // Get user preferences
+  const getPreferences = () => {
+    return trpc.user.getPreferences.useQuery({});
+  };
+
+  // Update the user's preferences
   const updatePreferences = () => {
     return trpc.user.updatePreferences.useMutation({
       onSuccess: () => {
-        // Invalidate the profile query to refetch data
-        trpc.user.getProfile.invalidate();
+        // Invalidate the profile and preferences queries to refetch data
+        utils.user.getProfile.invalidate();
+        utils.user.getPreferences.invalidate();
       },
     });
   };
@@ -35,6 +43,7 @@ export const useUserService = () => {
     getProfile,
     updateProfile,
     changePassword,
+    getPreferences,
     updatePreferences,
   };
 }; 

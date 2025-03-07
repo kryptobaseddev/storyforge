@@ -22,32 +22,52 @@ export default {
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
+          light: "hsl(var(--primary-light))",
+          dark: "hsl(var(--primary-dark))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
+          light: "hsl(var(--secondary-light))",
+          dark: "hsl(var(--secondary-dark))",
           foreground: "hsl(var(--secondary-foreground))",
         },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          light: "hsl(var(--accent-light))",
+          dark: "hsl(var(--accent-dark))",
+          foreground: "hsl(var(--accent-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
+        error: "hsl(var(--error))",
+      },
+      fontFamily: {
+        sans: ["var(--font-primary)"],
+        heading: ["var(--font-heading)"],
+        mono: ["var(--font-mono)"],
+      },
+      fontSize: {
+        xs: "var(--font-size-xs)",
+        sm: "var(--font-size-sm)",
+        base: "var(--font-size-base)",
+        lg: "var(--font-size-lg)",
+        xl: "var(--font-size-xl)",
+        "2xl": "var(--font-size-2xl)",
+        "3xl": "var(--font-size-3xl)",
+        "4xl": "var(--font-size-4xl)",
       },
       borderRadius: {
         lg: "var(--radius)",

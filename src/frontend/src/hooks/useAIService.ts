@@ -1,30 +1,36 @@
 import { trpc } from '../utils/trpc';
 
 export const useAIService = () => {
-  // Generate text based on a prompt
-  const generateText = () => {
-    return trpc.ai.generateText.useMutation();
+  // Generate content based on a prompt
+  const generateContent = () => {
+    return trpc.ai.generateContent.useMutation();
   };
 
-  // Continue existing text
-  const continueText = () => {
-    return trpc.ai.continueText.useMutation();
+  // Generate an image based on a prompt
+  const generateImage = () => {
+    return trpc.ai.generateImage.useMutation();
   };
 
-  // Get writing suggestions
-  const getSuggestions = () => {
-    return trpc.ai.getSuggestions.useMutation();
+  // Save a generated content
+  const saveGeneration = () => {
+    return trpc.ai.saveGeneration.useMutation();
   };
 
-  // Analyze text for insights
-  const analyzeText = () => {
-    return trpc.ai.analyzeText.useMutation();
+  // Get all AI generations for a project
+  const getGenerationsForProject = (projectId: string) => {
+    return trpc.ai.getGenerationsForProject.useQuery({ projectId });
+  };
+
+  // Get a specific AI generation by ID
+  const getGeneration = (generationId: string) => {
+    return trpc.ai.getGeneration.useQuery({ generationId });
   };
 
   return {
-    generateText,
-    continueText,
-    getSuggestions,
-    analyzeText,
+    generateContent,
+    generateImage,
+    saveGeneration,
+    getGenerationsForProject,
+    getGeneration,
   };
 }; 

@@ -5,12 +5,12 @@ export const useSettingService = () => {
 
   // Get all settings for a project
   const getAllSettings = (projectId: string) => {
-    return trpc.setting.getAllByProject.useQuery({ projectId });
+    return trpc.setting.getAll.useQuery({ projectId });
   };
 
   // Get a single setting by ID
-  const getSetting = (settingId: string) => {
-    return trpc.setting.getById.useQuery({ settingId });
+  const getSetting = (projectId: string, settingId: string) => {
+    return trpc.setting.getById.useQuery({ projectId, settingId });
   };
 
   // Create a new setting
@@ -18,7 +18,7 @@ export const useSettingService = () => {
     return trpc.setting.create.useMutation({
       onSuccess: (data) => {
         // Invalidate the settings query to refetch the data
-        utils.setting.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.setting.getAll.invalidate({ projectId: data.projectId });
       },
     });
   };
@@ -28,8 +28,8 @@ export const useSettingService = () => {
     return trpc.setting.update.useMutation({
       onSuccess: (data) => {
         // Invalidate specific queries to refetch data
-        utils.setting.getAllByProject.invalidate({ projectId: data.projectId });
-        utils.setting.getById.invalidate({ settingId: data.id });
+        utils.setting.getAll.invalidate({ projectId: data.projectId });
+        utils.setting.getById.invalidate({ projectId: data.projectId, settingId: data.id });
       },
     });
   };
@@ -37,9 +37,9 @@ export const useSettingService = () => {
   // Delete a setting
   const deleteSetting = () => {
     return trpc.setting.delete.useMutation({
-      onSuccess: (data) => {
+      onSuccess: (_, variables) => {
         // Invalidate the settings query to refetch the data
-        utils.setting.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.setting.getAll.invalidate({ projectId: variables.projectId });
       },
     });
   };

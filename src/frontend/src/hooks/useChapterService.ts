@@ -5,12 +5,12 @@ export const useChapterService = () => {
 
   // Get all chapters for a project
   const getAllChapters = (projectId: string) => {
-    return trpc.chapter.getAllByProject.useQuery({ projectId });
+    return trpc.chapter.getAll.useQuery({ projectId });
   };
 
   // Get a single chapter by ID
-  const getChapter = (chapterId: string) => {
-    return trpc.chapter.getById.useQuery({ chapterId });
+  const getChapter = (projectId: string, chapterId: string) => {
+    return trpc.chapter.getById.useQuery({ projectId, chapterId });
   };
 
   // Create a new chapter
@@ -18,7 +18,7 @@ export const useChapterService = () => {
     return trpc.chapter.create.useMutation({
       onSuccess: (data) => {
         // Invalidate the chapters query to refetch the data
-        utils.chapter.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.chapter.getAll.invalidate({ projectId: data.projectId });
       },
     });
   };
@@ -28,8 +28,8 @@ export const useChapterService = () => {
     return trpc.chapter.update.useMutation({
       onSuccess: (data) => {
         // Invalidate specific queries to refetch data
-        utils.chapter.getAllByProject.invalidate({ projectId: data.projectId });
-        utils.chapter.getById.invalidate({ chapterId: data.id });
+        utils.chapter.getAll.invalidate({ projectId: data.projectId });
+        utils.chapter.getById.invalidate({ projectId: data.projectId, chapterId: data.id });
       },
     });
   };
@@ -37,9 +37,9 @@ export const useChapterService = () => {
   // Delete a chapter
   const deleteChapter = () => {
     return trpc.chapter.delete.useMutation({
-      onSuccess: (data) => {
+      onSuccess: (data, variables) => {
         // Invalidate the chapters query to refetch the data
-        utils.chapter.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.chapter.getAll.invalidate({ projectId: variables.projectId });
       },
     });
   };
@@ -48,18 +48,30 @@ export const useChapterService = () => {
   const updateChapterContent = () => {
     return trpc.chapter.updateContent.useMutation({
       onSuccess: (data) => {
-        // Invalidate the specific chapter to refetch data
-        utils.chapter.getById.invalidate({ chapterId: data.id });
+        // Invalidate specific queries to refetch data
+        utils.chapter.getAll.invalidate({ projectId: data.projectId });
+        utils.chapter.getById.invalidate({ projectId: data.projectId, chapterId: data.id });
       },
     });
   };
 
   // Reorder chapters
   const reorderChapters = () => {
-    return trpc.chapter.reorderChapters.useMutation({
-      onSuccess: (data) => {
+    return trpc.chapter.reorder.useMutation({
+      onSuccess: (_, variables) => {
         // Invalidate the chapters query to refetch the data
-        utils.chapter.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.chapter.getAll.invalidate({ projectId: variables.projectId });
+      },
+    });
+  };
+
+  // Add an edit record to a chapter
+  const addChapterEdit = () => {
+    return trpc.chapter.addEdit.useMutation({
+      onSuccess: (data) => {
+        // Invalidate specific queries to refetch data
+        utils.chapter.getAll.invalidate({ projectId: data.projectId });
+        utils.chapter.getById.invalidate({ projectId: data.projectId, chapterId: data.id });
       },
     });
   };
@@ -72,5 +84,6 @@ export const useChapterService = () => {
     deleteChapter,
     updateChapterContent,
     reorderChapters,
+    addChapterEdit,
   };
 }; 

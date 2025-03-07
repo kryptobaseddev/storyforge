@@ -5,12 +5,12 @@ export const useExportService = () => {
 
   // Get all exports for a project
   const getAllExports = (projectId: string) => {
-    return trpc.export.getAllByProject.useQuery({ projectId });
+    return trpc.export.getExports.useQuery({ projectId });
   };
 
   // Get a single export by ID
-  const getExport = (exportId: string) => {
-    return trpc.export.getExportById.useQuery({ exportId });
+  const getExport = (projectId: string, id: string) => {
+    return trpc.export.getExportById.useQuery({ projectId, id });
   };
 
   // Create a new export
@@ -18,7 +18,7 @@ export const useExportService = () => {
     return trpc.export.createExport.useMutation({
       onSuccess: (data) => {
         // Invalidate the exports query to refetch the data
-        utils.export.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.export.getExports.invalidate({ projectId: data.projectId });
       },
     });
   };
@@ -26,16 +26,16 @@ export const useExportService = () => {
   // Delete an export
   const deleteExport = () => {
     return trpc.export.deleteExport.useMutation({
-      onSuccess: (data) => {
+      onSuccess: (_, variables) => {
         // Invalidate the exports query to refetch the data
-        utils.export.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.export.getExports.invalidate({ projectId: variables.projectId });
       },
     });
   };
 
   // Download an export file
-  const downloadExport = (exportId: string) => {
-    return trpc.export.downloadExport.useQuery({ exportId });
+  const downloadExport = () => {
+    return trpc.export.downloadExport.useMutation();
   };
 
   return {

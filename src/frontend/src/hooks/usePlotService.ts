@@ -5,12 +5,12 @@ export const usePlotService = () => {
 
   // Get all plots for a project
   const getAllPlots = (projectId: string) => {
-    return trpc.plot.getAllByProject.useQuery({ projectId });
+    return trpc.plot.getAll.useQuery({ projectId });
   };
 
   // Get a single plot by ID
-  const getPlot = (plotId: string) => {
-    return trpc.plot.getById.useQuery({ plotId });
+  const getPlot = (projectId: string, plotId: string) => {
+    return trpc.plot.getById.useQuery({ projectId, plotId });
   };
 
   // Create a new plot
@@ -18,7 +18,7 @@ export const usePlotService = () => {
     return trpc.plot.create.useMutation({
       onSuccess: (data) => {
         // Invalidate the plots query to refetch the data
-        utils.plot.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.plot.getAll.invalidate({ projectId: data.projectId });
       },
     });
   };
@@ -28,8 +28,8 @@ export const usePlotService = () => {
     return trpc.plot.update.useMutation({
       onSuccess: (data) => {
         // Invalidate specific queries to refetch data
-        utils.plot.getAllByProject.invalidate({ projectId: data.projectId });
-        utils.plot.getById.invalidate({ plotId: data.id });
+        utils.plot.getAll.invalidate({ projectId: data.projectId });
+        utils.plot.getById.invalidate({ projectId: data.projectId, plotId: data.id });
       },
     });
   };
@@ -37,9 +37,9 @@ export const usePlotService = () => {
   // Delete a plot
   const deletePlot = () => {
     return trpc.plot.delete.useMutation({
-      onSuccess: (data) => {
+      onSuccess: (_, variables) => {
         // Invalidate the plots query to refetch the data
-        utils.plot.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.plot.getAll.invalidate({ projectId: variables.projectId });
       },
     });
   };

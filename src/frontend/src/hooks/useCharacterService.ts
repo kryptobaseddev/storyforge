@@ -5,12 +5,12 @@ export const useCharacterService = () => {
 
   // Get all characters for a project
   const getAllCharacters = (projectId: string) => {
-    return trpc.character.getAllByProject.useQuery({ projectId });
+    return trpc.character.getAll.useQuery({ projectId });
   };
 
   // Get a single character by ID
-  const getCharacter = (characterId: string) => {
-    return trpc.character.getById.useQuery({ characterId });
+  const getCharacter = (projectId: string, characterId: string) => {
+    return trpc.character.getById.useQuery({ projectId, characterId });
   };
 
   // Create a new character
@@ -18,7 +18,7 @@ export const useCharacterService = () => {
     return trpc.character.create.useMutation({
       onSuccess: (data) => {
         // Invalidate the characters query to refetch the data
-        utils.character.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.character.getAll.invalidate({ projectId: data.projectId });
       },
     });
   };
@@ -28,8 +28,8 @@ export const useCharacterService = () => {
     return trpc.character.update.useMutation({
       onSuccess: (data) => {
         // Invalidate specific queries to refetch data
-        utils.character.getAllByProject.invalidate({ projectId: data.projectId });
-        utils.character.getById.invalidate({ characterId: data.id });
+        utils.character.getAll.invalidate({ projectId: data.projectId });
+        utils.character.getById.invalidate({ projectId: data.projectId, characterId: data.id });
       },
     });
   };
@@ -37,9 +37,9 @@ export const useCharacterService = () => {
   // Delete a character
   const deleteCharacter = () => {
     return trpc.character.delete.useMutation({
-      onSuccess: (data) => {
+      onSuccess: (_, variables) => {
         // Invalidate the characters query to refetch the data
-        utils.character.getAllByProject.invalidate({ projectId: data.projectId });
+        utils.character.getAll.invalidate({ projectId: variables.projectId });
       },
     });
   };

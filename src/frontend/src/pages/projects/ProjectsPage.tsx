@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useProjectService } from '../../hooks/useProjectService';
 import { getErrorMessage } from '../../utils/errorHandler';
@@ -7,7 +7,6 @@ import ContentLayout from '../../components/layout/ContentLayout';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent } from '../../components/ui/card';
-import { useUI } from '../../context/UIContext';
 import type { Project } from '../../types/api';
 
 /**
@@ -16,34 +15,14 @@ import type { Project } from '../../types/api';
  * Lists all projects with filtering, sorting, and search
  */
 const ProjectsPage: React.FC = () => {
-  console.log('ProjectsPage component is being rendered');
-  
   const navigate = useNavigate();
-  const { theme } = useUI();
   const [searchTerm, setSearchTerm] = useState('');
   const [genreFilter, setGenreFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   
-  // Debug logging
-  useEffect(() => {
-    console.log('ProjectsPage mounted');
-    console.log('Theme:', theme);
-    
-    return () => {
-      console.log('ProjectsPage unmounted');
-    };
-  }, [theme]);
-  
   // Use the project service hook to fetch projects
   const { getAllProjects } = useProjectService();
   const { data: projectsData, isLoading, error } = getAllProjects();
-  
-  // Debug data loading
-  useEffect(() => {
-    console.log('Projects data:', projectsData);
-    console.log('Projects loading state:', isLoading);
-    console.log('Projects error:', error);
-  }, [projectsData, isLoading, error]);
   
   // Filter projects based on search term and filters
   const filteredProjects = React.useMemo(() => {
@@ -211,7 +190,7 @@ const ProjectsPage: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="border-t border-solid border-[hsl(var(--border))] p-4 bg-muted/50">
+                <div className="border-t border-border p-4 bg-muted/50">
                   <div className="flex space-x-3">
                     <Button variant="secondary" className="flex-1" asChild>
                       <Link to={`/projects/${project.id}`}>
@@ -246,7 +225,7 @@ const ProjectsPage: React.FC = () => {
         
         {/* New Project Card */}
         <div 
-          className="bg-card text-card-foreground rounded-lg shadow overflow-hidden border-2 border-dashed border-[hsl(var(--border))] flex items-center justify-center p-6 min-h-[260px] cursor-pointer hover:bg-muted/40 transition-colors"
+          className="bg-card text-card-foreground rounded-lg shadow overflow-hidden border-2 border-dashed border-border flex items-center justify-center p-6 min-h-[260px] cursor-pointer hover:bg-muted/40 transition-colors"
           onClick={() => navigate('/projects/new')}
         >
           <div className="text-center">
