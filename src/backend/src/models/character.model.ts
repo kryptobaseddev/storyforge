@@ -46,6 +46,7 @@ export interface ICharacter extends Document {
     notes: string;
   }>;
   plotInvolvement: mongoose.Types.ObjectId[];
+  possessions: mongoose.Types.ObjectId[];
   imageUrl?: string;
   notes?: string;
   createdAt: Date;
@@ -166,7 +167,11 @@ const CharacterSchema: Schema = new Schema({
   }],
   plotInvolvement: [{
     type: Schema.Types.ObjectId,
-    ref: 'Plotline'
+    ref: 'Plot'
+  }],
+  possessions: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Object'
   }],
   imageUrl: {
     type: String

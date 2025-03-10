@@ -78,6 +78,7 @@ export interface Character {
   attributes?: Record<string, string | number | boolean>;
   relationships: CharacterRelationship[];
   plotInvolvement: string[];
+  possessions: string[];
   imageUrl?: string;
   notes?: string;
   createdAt: string;
@@ -96,6 +97,7 @@ export interface CreateCharacterInput {
   detailedBackground?: string;
   role?: string;
   attributes?: Record<string, string | number | boolean>;
+  possessions?: string[];
   imageUrl?: string;
   notes?: string;
 }
@@ -185,7 +187,7 @@ export interface Chapter {
   wordCount: number;
   characters: string[];
   settings: string[];
-  plotlines: string[];
+  plots: string[];
   objects: string[];
   notes?: string;
   aiGenerated: boolean;
@@ -208,7 +210,7 @@ export interface CreateChapterInput {
   status?: 'Draft' | 'In Progress' | 'Completed' | 'Revision' | 'Final';
   characters?: string[];
   settings?: string[];
-  plotlines?: string[];
+  plots?: string[];
   objects?: string[];
   notes?: string;
   aiGenerated?: boolean;
@@ -362,4 +364,59 @@ export interface ProjectStats {
   settingCount: number;
   plotCount: number;
   chapterCount: number;
-} 
+}
+
+// Object Types
+export interface Object {
+  id: string;
+  projectId: string;
+  name: string;
+  description: string;
+  type: 'Item' | 'Artifact' | 'Vehicle' | 'Weapon' | 'Tool' | 'Clothing' | 'Other';
+  significance: string;
+  properties: {
+    physical: {
+      size: string;
+      material: string;
+      appearance: string;
+    };
+    magical?: {
+      powers: string[];
+      limitations: string[];
+      origin: string;
+    };
+  };
+  history: string;
+  location?: string;
+  owner?: string;
+  imageUrl?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateObjectInput {
+  name: string;
+  description: string;
+  type: 'Item' | 'Artifact' | 'Vehicle' | 'Weapon' | 'Tool' | 'Clothing' | 'Other';
+  significance?: string;
+  properties?: {
+    physical?: {
+      size?: string;
+      material?: string;
+      appearance?: string;
+    };
+    magical?: {
+      powers?: string[];
+      limitations?: string[];
+      origin?: string;
+    };
+  };
+  history?: string;
+  location?: string;
+  owner?: string;
+  imageUrl?: string;
+  notes?: string;
+}
+
+export type UpdateObjectInput = Partial<CreateObjectInput>; 

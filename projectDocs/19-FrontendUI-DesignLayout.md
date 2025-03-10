@@ -195,7 +195,7 @@ This document provides visual representations of the UI layouts for the StoryFor
 
 ## Story Setup
 
-### Setup Wizard (Desktop)
+### Story Wizard (Desktop)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -223,7 +223,7 @@ This document provides visual representations of the UI layouts for the StoryFor
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Setup Wizard - Template Selection (Desktop)
+### Story Wizard - Template Selection (Desktop)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -271,22 +271,23 @@ This document provides visual representations of the UI layouts for the StoryFor
 │             │ └───────────────────────────┘ │               │
 │             │                               │ ┌─────────────┐
 │             │ ┌───────────────────────────┐ │ │ PROGRESS    │
-│             │ │ [Overview] [Characters] [Plot] [Chapters]  ││ │ Characters: │
-│             │ └───────────────────────────┘ │ │ XX/YY       │
+│             │ │ [Overview] [Characters]    │ │ │ Characters: │
+│             │ │ [Plot]    [Chapters]      │ │ │ XX/YY       │
+│             │ └───────────────────────────┘ │ │             │
+│             │                               │ │ Plot Points:│
+│             │ ┌───────────────┐ ┌─────────┐ │ │ XX/YY       │
+│             │ │ STORY SUMMARY │ │ STATUS  │ │ │             │
+│             │ │               │ │         │ │ │ Chapters:   │
+│             │ │               │ │ Draft   │ │ │ XX/YY       │
+│             │ │               │ │ 45%     │ │ │             │
+│             │ │               │ │         │ │ │ Word Count: │
+│             │ └───────────────┘ └─────────┘ │ │ 12,345      │
 │             │                               │ │             │
-│             │ ┌───────────────┐ ┌─────────┐ │ │ Plot Points:│
-│             │ │ STORY SUMMARY │ │ STATUS  │ │ │ XX/YY       │
-│             │ │               │ │         │ │ │             │
-│             │ │               │ │ Draft   │ │ │ Chapters:   │
-│             │ │               │ │ 45%     │ │ │ XX/YY       │
-│             │ │               │ │         │ │ │             │
-│             │ └───────────────┘ └─────────┘ │ │ Word Count: │
-│             │                               │ │ 12,345      │
-│             │ ┌─────────────┐ ┌───────────┐ │ │             │
-│             │ │ NEXT STEPS  │ │ NOTES     │ │ └─────────────┘
-│             │ │             │ │           │ │               │
-│             │ │ • Task 1    │ │           │ │ ┌─────────────┐
-│             │ │ • Task 2    │ │           │ │ │ QUICK LINKS │
+│             │ ┌─────────────┐ ┌───────────┐ │ └─────────────┘
+│             │ │ NEXT STEPS  │ │ NOTES     │ │               │
+│             │ │             │ │           │ │ ┌─────────────┐
+│             │ │ • Task 1    │ │           │ │ │ QUICK LINKS │
+│             │ │ • Task 2    │ │           │ │ │             │
 │             │ │ • Task 3    │ │           │ │ │             │
 │             │ └─────────────┘ └───────────┘ │ └─────────────┘
 ├─────────────┴───────────────────────────────┴───────────────┤
@@ -306,13 +307,14 @@ This document provides visual representations of the UI layouts for the StoryFor
 │             │ └───────────────────────────┘ │               │
 │             │                               │ ┌─────────────┐
 │             │ ┌───────────────────────────┐ │ │ {Selected}  │
-│             │ │ [Overview] [Characters] [Plot] [Chapters]  ││ │ Character   │
-│             │ └───────────────────────────┘ │ │             │
-│             │                               │ │ Name:       │
-│             │ ┌───────────────────────────┐ │ │ Role:       │
-│             │ │ [Search] [Add] [Filter]    │ │ │ Importance: │
-│             │ └───────────────────────────┘ │ │             │
-│             │                               │ │ Description: │
+│             │ │ [Overview] [Characters]    │ │ │ Character   │
+│             │ │ [Plot]    [Chapters]      │ │ │             │
+│             │ └───────────────────────────┘ │ │ Name:       │
+│             │                               │ │ Role:       │
+│             │ ┌───────────────────────────┐ │ │ Importance: │
+│             │ │ [Search] [Add] [Filter]    │ │ │             │
+│             │ └───────────────────────────┘ │ │ Description: │
+│             │                               │ │             │
 │             │ ┌─────┐ ┌─────┐ ┌─────┐ ┌────┐│ │             │
 │             │ │CHAR1│ │CHAR2│ │CHAR3│ │ADD+││ │             │
 │             │ │     │ │     │ │     │ │    ││ │             │
@@ -342,23 +344,24 @@ This document provides visual representations of the UI layouts for the StoryFor
 │             │ └───────────────────────────┘ │               │
 │             │                               │ ┌─────────────┐
 │             │ ┌───────────────────────────┐ │ │ SUGGESTIONS │
-│  CHARACTERS │ │ [Profile] [Background] [Relationships]     ││ │             │
-│  LIST       │ └───────────────────────────┘ │ │ • Trait     │
-│             │                               │ │ • Background│
-│  ┌─────┐    │ ┌───────────┐ ┌─────────────┐ │ │ • Goal      │
+│  CHARACTERS │ │ [Profile]  [Background]    │ │ │             │
+│  LIST       │ │ [Relationships]           │ │ │ • Trait     │
+│             │ └───────────────────────────┘ │ │ • Background│
+│             │                               │ │ • Goal      │
+│  ┌─────┐    │ ┌───────────┐ ┌─────────────┐ │ │             │
 │  │Char1│    │ │ AVATAR    │ │ ATTRIBUTES  │ │ │             │
-│  └─────┘    │ │           │ │             │ │ │             │
-│  ┌─────┐    │ │ [Upload]  │ │ • Trait 1   │ │ │ [Generate]  │
-│  │Char2│    │ │           │ │ • Trait 2   │ │ │             │
-│  └─────┘    │ │           │ │ • Trait 3   │ │ └─────────────┘
-│  ┌─────┐    │ └───────────┘ └─────────────┘ │               │
-│  │Char3│    │                               │ ┌─────────────┐
-│  └─────┘    │ ┌───────────────────────────┐ │ │ REFERENCES  │
-│             │ │ DESCRIPTION               │ │ │             │
-│  ┌─────┐    │ │                           │ │ │ • In scenes │
-│  │Add+ │    │ │                           │ │ │ • Related   │
-│  └─────┘    │ │                           │ │ │   characters│
-│             │ └───────────────────────────┘ │ └─────────────┘
+│  └─────┘    │ │           │ │             │ │ │ [Generate]  │
+│  ┌─────┐    │ │ [Upload]  │ │ • Trait 1   │ │ │             │
+│  │Char2│    │ │           │ │ • Trait 2   │ │ └─────────────┘
+│  └─────┘    │ │           │ │ • Trait 3   │ │               │
+│  ┌─────┐    │ └───────────┘ └─────────────┘ │ ┌─────────────┐
+│  │Char3│    │                               │ │ REFERENCES  │
+│  └─────┘    │ ┌───────────────────────────┐ │ │             │
+│             │ │ DESCRIPTION               │ │ │ • In scenes │
+│  ┌─────┐    │ │                           │ │ │ • Related   │
+│  │Add+ │    │ │                           │ │ │   characters│
+│  └─────┘    │ │                           │ │ └─────────────┘
+│             │ └───────────────────────────┘ │               │
 ├─────────────┴───────────────────────────────┴───────────────┤
 │                        FOOTER                               │
 └─────────────────────────────────────────────────────────────┘
@@ -376,24 +379,25 @@ This document provides visual representations of the UI layouts for the StoryFor
 │             │ └───────────────────────────┘ │               │
 │             │                               │ ┌─────────────┐
 │             │ ┌───────────────────────────┐ │ │ SELECTED    │
-│  CHARACTERS │ │ [Profile] [Background] [Relationships]     ││ │ RELATIONSHIP │
-│  LIST       │ └───────────────────────────┘ │ │             │
-│             │                               │ │ With:       │
-│  ┌─────┐    │ ┌───────────────────────────┐ │ │ Character X │
-│  │Char1│    │ │                           │ │ │             │
-│  └─────┘    │ │                           │ │ │ Type:       │
-│  ┌─────┐    │ │     RELATIONSHIP          │ │ │ Friends     │
-│  │Char2│    │ │        MAP                │ │ │             │
-│  └─────┘    │ │     (D3.js Graph)         │ │ │ Details:    │
-│  ┌─────┐    │ │                           │ │ │ ...         │
-│  │Char3│    │ │                           │ │ │             │
-│  └─────┘    │ │                           │ │ │ [Edit]      │
+│  CHARACTERS │ │ [Profile]  [Background]    │ │ │ RELATIONSHIP │
+│  LIST       │ │ [Relationships]           │ │ │             │
+│             │ └───────────────────────────┘ │ │ With:       │
+│             │                               │ │ Character X │
+│  ┌─────┐    │ ┌───────────────────────────┐ │ │             │
+│  │Char1│    │ │                           │ │ │ Type:       │
+│  └─────┘    │ │                           │ │ │ Friends     │
+│  ┌─────┐    │ │     RELATIONSHIP          │ │ │             │
+│  │Char2│    │ │        MAP                │ │ │ Details:    │
+│  └─────┘    │ │     (D3.js Graph)         │ │ │ ...         │
+│  ┌─────┐    │ │                           │ │ │             │
+│  │Char3│    │ │                           │ │ │ [Edit]      │
+│  └─────┘    │ │                           │ │ └─────────────┘
+│             │ └───────────────────────────┘ │               │
+│  ┌─────┐    │                               │ ┌─────────────┐
+│  │Add+ │    │ ┌───────────────────────────┐ │ │ ACTIONS     │
+│  └─────┘    │ │ [Add Relationship]        │ │ │ [Generate]  │
 │             │ └───────────────────────────┘ │ └─────────────┘
-│  ┌─────┐    │                               │               │
-│  │Add+ │    │ ┌───────────────────────────┐ │ ┌─────────────┐
-│  └─────┘    │ │ [Add Relationship]        │ │ │ ACTIONS     │
-│             │ └───────────────────────────┘ │ │ [Generate]  │
-│             │                               │ └─────────────┘
+│             │                               │               │
 ├─────────────┴───────────────────────────────┴───────────────┤
 │                        FOOTER                               │
 └─────────────────────────────────────────────────────────────┘
@@ -413,23 +417,25 @@ This document provides visual representations of the UI layouts for the StoryFor
 │             │ └───────────────────────────┘ │               │
 │             │                               │ ┌─────────────┐
 │             │ ┌───────────────────────────┐ │ │ SELECTED    │
-│  PLOTS      │ │ [Structure] [Points] [Timeline]            ││ │ ELEMENT     │
-│  LIST       │ └───────────────────────────┘ │ │             │
-│             │                               │ │ Title:      │
-│  ┌─────┐    │ ┌───────────────────────────┐ │ │ Type:       │
-│  │Plot1│    │ │                           │ │ │ Purpose:    │
+│  PLOTS      │ │ [Structure] [Points]       │ │ │ ELEMENT     │
+│  LIST       │ │ [Timeline]                │ │ │             │
+│             │ └───────────────────────────┘ │ │ Title:      │
+│             │                               │ │ Type:       │
+│  ┌─────┐    │ ┌───────────────────────────┐ │ │ Purpose:    │
+│  │Plot1│    │ │                           │ │ │             │
+│  └─────┘    │ │                           │ │ │ Description:│
+│  ┌─────┐    │ │                           │ │ │ ...         │
+│  │Plot2│    │ │       PLOT STRUCTURE      │ │ │             │
+│  └─────┘    │ │      (Visual Timeline)     │ │ │ Characters: │
+│  ┌─────┐    │ │                           │ │ │ • Character1│
+│  │Plot3│    │ │                           │ │ │ • Character2│
 │  └─────┘    │ │                           │ │ │             │
-│  ┌─────┐    │ │                           │ │ │ Description:│
-│  │Plot2│    │ │       PLOT STRUCTURE      │ │ │ ...         │
-│  └─────┘    │ │      (Visual Timeline)     │ │ │             │
-│  ┌─────┐    │ │                           │ │ │ Characters: │
-│  │Plot3│    │ │                           │ │ │ • Character1│
-│  └─────┘    │ │                           │ │ │ • Character2│
-│             │ │                           │ │ │             │
-│  ┌─────┐    │ └───────────────────────────┘ │ │ [Edit]      │
-│  │Add+ │    │                               │ └─────────────┘
+│             │ │                           │ │ │ [Edit]      │
+│  ┌─────┐    │ └───────────────────────────┘ │ └─────────────┘
+│  │Add+ │    │                               │               │
 │  └─────┘    │ ┌───────────────────────────┐ │               │
-│             │ │ [Add Plot Point] [Templates] [Export]      ││ │               │
+│             │ │ [Add Plot Point] [Templates] │ │               │
+│             │ │ [Export]                  │ │               │
 │             │ └───────────────────────────┘ │ │               │
 ├─────────────┴───────────────────────────────┴───────────────┤
 │                        FOOTER                               │
@@ -448,24 +454,25 @@ This document provides visual representations of the UI layouts for the StoryFor
 │             │ └───────────────────────────┘ │               │
 │             │                               │ ┌─────────────┐
 │             │ ┌───────────────────────────┐ │ │ DISPLAY     │
-│  PLOT       │ │ [Structure] [Points] [Timeline]            ││ │ OPTIONS      │
-│  ELEMENTS   │ └───────────────────────────┘ │ │             │
-│             │                               │ │ [By Time]   │
-│ • Inciting  │ ┌───────────────────────────┐ │ │ [By Chapter]│
-│   Incident  │ │ ------------------------- │ │ │             │
-│             │ │ |                       | │ │ │ Filter:     │
-│ • Rising    │ │ |                       | │ │ │ [All]       │
-│   Action    │ │ |      TIMELINE         | │ │ │ [Main Plot] │
-│             │ │ |                       | │ │ │ [Subplots]  │
-│ • Climax    │ │ |                       | │ │ │             │
-│             │ │ |                       | │ │ │ Zoom:       │
-│ • Falling   │ │ ------------------------- │ │ │ [- +]       │
-│   Action    │ └───────────────────────────┘ │ │             │
-│             │                               │ └─────────────┘
-│ • Resolution│ ┌───────────────────────────┐ │               │
-│             │ │ CONNECTIONS:              │ │ ┌─────────────┐
-│ [+ Add]     │ │ Characters | Settings     │ │ │ NOTES       │
-│             │ └───────────────────────────┘ │ └─────────────┘
+│  PLOT       │ │ [Structure] [Points]       │ │ │ OPTIONS      │
+│  ELEMENTS   │ │ [Timeline]                │ │ │             │
+│             │ └───────────────────────────┘ │ │ [By Time]   │
+│             │                               │ │ [By Chapter]│
+│ • Inciting  │ ┌───────────────────────────┐ │ │             │
+│   Incident  │ │ ------------------------- │ │ │ Filter:     │
+│             │ │ |                       | │ │ │ [All]       │
+│ • Rising    │ │ |                       | │ │ │ [Main Plot] │
+│   Action    │ │ |      TIMELINE         | │ │ │ [Subplots]  │
+│             │ │ |                       | │ │ │             │
+│ • Climax    │ │ |                       | │ │ │ Zoom:       │
+│             │ │ |                       | │ │ │ [- +]       │
+│ • Falling   │ │ ------------------------- │ │ │             │
+│   Action    │ └───────────────────────────┘ │ └─────────────┘
+│             │                               │               │
+│ • Resolution│ ┌───────────────────────────┐ │ ┌─────────────┐
+│             │ │ CONNECTIONS:              │ │ │ NOTES       │
+│ [+ Add]     │ │ Characters | Settings     │ │ └─────────────┘
+│             │ └───────────────────────────┘ │               │
 ├─────────────┴───────────────────────────────┴───────────────┤
 │                        FOOTER                               │
 └─────────────────────────────────────────────────────────────┘
@@ -557,10 +564,11 @@ This document provides visual representations of the UI layouts for the StoryFor
 │             │ └───────────────────────────┘ │               │
 │             │                               │ ┌─────────────┐
 │             │ ┌───────────────────────────┐ │ │             │
-│  EXPORTS    │ │ [Format] [Chapters] [Settings] [Download]  ││ │             │
-│  LIST       │ └───────────────────────────┘ │ │             │
-│             │                               │ │   EXPORT    │
-│  ┌─────┐    │ ┌───────────────────────────┐ │ │   PREVIEW   │
+│  EXPORTS    │ │ [Format]  [Chapters]       │ │ │             │
+│  LIST       │ │ [Settings] [Download]      │ │ │             │
+│             │ └───────────────────────────┘ │ │   EXPORT    │
+│             │                               │ │   PREVIEW   │
+│  ┌─────┐    │ ┌───────────────────────────┐ │ │             │
 │  │Exp 1│    │ │ FORMAT                    │ │ │             │
 │  └─────┘    │ │ ○ PDF                     │ │ │             │
 │  ┌─────┐    │ │ ○ EPUB                    │ │ │             │
@@ -592,11 +600,12 @@ This document provides visual representations of the UI layouts for the StoryFor
 │             │ └───────────────────────────┘ │  PREVIEW      │
 │             │                               │               │
 │             │ ┌───────────────────────────┐ │ ┌─────────────┐
-│  EXPORTS    │ │ [Format] [Chapters] [Settings] [Download]  ││ │             │
-│  LIST       │ └───────────────────────────┘ │ │ 1. Chapter 1│
-│             │                               │ │ 2. Chapter 2│
-│  ┌─────┐    │ ┌───────────────────────────┐ │ │ 3. Chapter 3│
-│  │Exp 1│    │ │ SELECT CHAPTERS           │ │ │ ...         │
+│  EXPORTS    │ │ [Format]  [Chapters]       │ │ │             │
+│  LIST       │ │ [Settings] [Download]      │ │ │ 1. Chapter 1│
+│             │ └───────────────────────────┘ │ │ 2. Chapter 2│
+│             │                               │ │ 3. Chapter 3│
+│  ┌─────┐    │ ┌───────────────────────────┐ │ │ ...         │
+│  │Exp 1│    │ │ SELECT CHAPTERS           │ │ │             │
 │  └─────┘    │ │                           │ │ │             │
 │  ┌─────┐    │ │ ☑ Chapter 1              │ │ │             │
 │  │Exp 2│    │ │ ☑ Chapter 2              │ │ │             │
@@ -604,19 +613,6 @@ This document provides visual representations of the UI layouts for the StoryFor
 │             │ │ ☑ Chapter 4              │ │ │             │
 │  ┌─────┐    │ │ ☐ Chapter 5 (Draft)      │ │ │             │
 │  │New+ │    │ │ ☐ Chapter 6 (Draft)      │ │ │             │
-│  
-<think>I need to continue the ASCII markdown document that shows the UI layout and design specification for StoryForge. I was in the middle of the "Export Chapter Selection" section and need to complete that and any remaining sections.
-
-The document should match the style and format of what I've already created, using ASCII art to show layouts for different views and responsive states.
-
-I should continue with:
-1. Finishing the Export Chapter Selection section
-2. Adding any remaining details about Modal & Dialog Patterns
-3. Showing more responsive layout examples if needed
-
-Let me continue with the remaining content.</think>Let me continue with the StoryForge UI Layout & Design Specification document:
-
-```
 │  └─────┘    │ │                           │ │ │             │
 │             │ │ [Select All] [Clear All]  │ │ │             │
 │             │ └───────────────────────────┘ │ │             │
@@ -641,23 +637,24 @@ Let me continue with the remaining content.</think>Let me continue with the Stor
 │             │ └───────────────────────────┘ │               │
 │             │                               │ ┌─────────────┐
 │             │ ┌───────────────────────────┐ │ │ PREVIOUS    │
-│  EXPORTS    │ │ [Format] [Chapters] [Settings] [Download]  ││ │ EXPORTS     │
-│  LIST       │ └───────────────────────────┘ │ │             │
-│             │                               │ │ • PDF       │
-│  ┌─────┐    │ ┌───────────────────────────┐ │ │   (2023-05) │
-│  │Exp 1│    │ │ EXPORT READY              │ │ │             │
-│  └─────┘    │ │                           │ │ │ • EPUB      │
-│  ┌─────┐    │ │ ┌─────────────────────┐   │ │ │   (2023-04) │
-│  │Exp 2│    │ │ │      COVER          │   │ │ │             │
-│  └─────┘    │ │ │      PREVIEW        │   │ │ │ • DOCX      │
-│             │ │ │                     │   │ │ │   (2023-03) │
-│  ┌─────┐    │ │ └─────────────────────┘   │ │ │             │
-│  │New+ │    │ │                           │ │ └─────────────┘
-│  └─────┘    │ │ Title: My Story           │ │               │
-│             │ │ Format: PDF               │ │ ┌─────────────┐
-│             │ │ Size: 2.4 MB              │ │ │ SHARE       │
-│             │ │                           │ │ │ OPTIONS     │
-│             │ │ [Download] [Share]        │ │ └─────────────┘
+│  EXPORTS    │ │ [Format]  [Chapters]       │ │ │ EXPORTS     │
+│  LIST       │ │ [Settings] [Download]      │ │ │             │
+│             │ └───────────────────────────┘ │ │ • PDF       │
+│             │                               │ │   (2023-05) │
+│  ┌─────┐    │ ┌───────────────────────────┐ │ │             │
+│  │Exp 1│    │ │ EXPORT READY              │ │ │ • EPUB      │
+│  └─────┘    │ │                           │ │ │   (2023-04) │
+│  ┌─────┐    │ │ ┌─────────────────────┐   │ │ │             │
+│  │Exp 2│    │ │ │      COVER          │   │ │ │ • DOCX      │
+│  └─────┘    │ │ │      PREVIEW        │   │ │ │   (2023-03) │
+│             │ │ │                     │   │ │ │             │
+│  ┌─────┐    │ │ └─────────────────────┘   │ │ └─────────────┘
+│  │New+ │    │ │                           │ │               │
+│  └─────┘    │ │ Title: My Story           │ │ ┌─────────────┐
+│             │ │ Format: PDF               │ │ │ SHARE       │
+│             │ │ Size: 2.4 MB              │ │ │ OPTIONS     │
+│             │ │                           │ │ └─────────────┘
+│             │ │ [Download] [Share]        │ │               │
 │             │ └───────────────────────────┘ │               │
 ├─────────────┴───────────────────────────────┴───────────────┤
 │                        FOOTER                               │
@@ -876,7 +873,7 @@ Let me continue with the remaining content.</think>Let me continue with the Stor
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Story Coach Character
+### Story ORACLE Character
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -885,7 +882,7 @@ Let me continue with the remaining content.</think>Let me continue with the Stor
 │                                                             │
 │                                 ┌───────────────────────┐   │
 │                                 │  ┌───┐                │   │
-│                                 │  │   │ STORY COACH    │   │
+│                                 │  │   │ STORY ORACLE    │   │
 │                                 │  │   │                │   │
 │                                 │  └───┘                │   │
 │                                 │                       │   │

@@ -18,6 +18,7 @@ import {
   relationshipListSchema
 } from '../schemas/character.schema';
 import { ObjectId } from 'mongodb';
+import mongoose from 'mongoose';
 
 /**
  * Helper function to check if user has access to the project
@@ -54,6 +55,9 @@ const characterToResponse = (character: ICharacter) => {
   const id = character._id ? character._id.toString() : '';
   const projectId = character.projectId ? character.projectId.toString() : '';
   
+  // Valid relationship types from the schema
+  const validRelationshipTypes = ['Friend', 'Enemy', 'Family', 'Romantic', 'Mentor', 'Colleague', 'Other'];
+  
   return {
     id,
     projectId,
@@ -64,14 +68,18 @@ const characterToResponse = (character: ICharacter) => {
     attributes: character.attributes || {},
     relationships: character.relationships.map((rel: any) => ({
       characterId: rel.characterId.toString(),
-      relationshipType: rel.relationshipType,
+      // Ensure relationshipType is one of the valid types, default to 'Other' if not
+      relationshipType: validRelationshipTypes.includes(rel.relationshipType) 
+        ? rel.relationshipType 
+        : 'Other',
       notes: rel.notes || ''
     })),
     plotInvolvement: character.plotInvolvement.map((id: any) => id.toString()),
     imageUrl: character.imageUrl,
     notes: character.notes,
     createdAt: character.createdAt,
-    updatedAt: character.updatedAt
+    updatedAt: character.updatedAt,
+    possessions: character.possessions.map((obj: any) => obj.toString())
   };
 };
 
@@ -581,6 +589,125 @@ export const characterRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to remove relationship',
+        });
+      }
+    }),
+
+  /**
+   * Add an object to a character's possessions
+   */
+  addPossession: protectedProcedure
+    .input(z.object({
+      projectId: z.string(),
+      characterId: z.string(),
+      objectId: z.string()
+    }))
+    .output(characterSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const { projectId, characterId, objectId } = input;
+        const userId = ctx.user.id;
+
+        // Find the character
+        const character = await CharacterModel.findOne({
+          _id: characterId,
+          projectId
+        });
+
+        if (!character) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Character not found',
+          });
+        }
+
+        // Check if the object exists
+        const objectExists = await mongoose.model('Object').findOne({
+          _id: objectId,
+          projectId
+        });
+
+        if (!objectExists) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Object not found',
+          });
+        }
+
+        // Add the object to the character's possessions if it's not already there
+        const objectIdObj = new ObjectId(objectId);
+        if (!character.possessions.some(id => id.equals(objectIdObj))) {
+          character.possessions.push(objectIdObj);
+          await character.save();
+
+          // Update the object's owner
+          await mongoose.model('Object').findByIdAndUpdate(objectId, {
+            owner: characterId
+          });
+        }
+
+        // Transform MongoDB document to match the schema
+        return characterToResponse(character);
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        
+        console.error('Error adding possession:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to add possession',
+        });
+      }
+    }),
+
+  /**
+   * Remove an object from a character's possessions
+   */
+  removePossession: protectedProcedure
+    .input(z.object({
+      projectId: z.string(),
+      characterId: z.string(),
+      objectId: z.string()
+    }))
+    .output(characterSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const { projectId, characterId, objectId } = input;
+        const userId = ctx.user.id;
+
+        // Find the character
+        const character = await CharacterModel.findOne({
+          _id: characterId,
+          projectId
+        });
+
+        if (!character) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Character not found',
+          });
+        }
+
+        // Remove the object from the character's possessions
+        const objectIdObj = new ObjectId(objectId);
+        character.possessions = character.possessions.filter(
+          id => !id.equals(objectIdObj)
+        );
+        await character.save();
+
+        // Remove the character as the object's owner
+        await mongoose.model('Object').findByIdAndUpdate(objectId, {
+          $unset: { owner: 1 }
+        });
+
+        // Transform MongoDB document to match the schema
+        return characterToResponse(character);
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        
+        console.error('Error removing possession:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to remove possession',
         });
       }
     })

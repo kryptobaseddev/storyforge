@@ -26,15 +26,15 @@
 - **Characters**: Character profiles with attributes and relationships
 - **Settings**: Locations, environments, and physical spaces
 - **Objects**: Important items, artifacts, and physical elements
-- **Plotlines**: Major and minor plot threads
+- **Plots**: Major and minor plot threads
 - **Chapters/Acts**: Individual segments of the narrative
 - **Metadata**: Genre definitions, narrative types, style guides
 
 ### 2.2 Key Relationships
-- Projects contain Characters, Plotlines, StoryElements, and Chapters
+- Projects contain Characters, Plots, StoryElements, and Chapters
 - Characters link to other Characters (relationships)
-- Plotlines reference involved Characters
-- Chapters reference Characters and Plotlines they include
+- Plots reference involved Characters
+- Chapters reference Characters and Plots they include
 
 ### 2.3 Sample Character Schema
 ```json
@@ -53,7 +53,7 @@
   "relationships": [
     { "characterId": "other-character-id", "relationshipType": "sibling", "notes": "..." }
   ],
-  "plotInvolvement": ["plotline-id-1", "plotline-id-2"],
+  "plotInvolvement": ["plot-id-1", "plot-id-2"],
   "createdAt": "timestamp",
   "updatedAt": "timestamp"
 }
@@ -63,24 +63,24 @@
 
 ### 3.1 Main Sections
 - **Dashboard**: Projects overview and quick access with visual cards (similar to Squibler.io)
-- **Story Setup**: Initial configuration (genre, scope, style) with visual selectors
+- **Story Wizard**: Initial configuration (genre, scope, style) with visual selectors
 - **Character Workshop**: Create and manage characters with simple profile cards
-- **Settings Workshop**: Create locations, environments, and world elements
-- **Objects Workshop**: Define important items, artifacts, and physical elements
-- **Plot Architect**: Define story arcs and plotlines with visual timeline
-- **Chapter Forge**: Develop individual chapters/acts with contextual sidebar
+- **Realm Crafter (Settings)**: Create locations, environments, and world elements
+- **Artifact Vault**: Define important items, artifacts, and physical elements
+- **Plot Architect**: Define story arcs and Plots with visual timeline
+- **Chapter Scribe**: Develop individual chapters/acts with contextual sidebar
 - **Story Bible**: Reference for all story elements in categorized tabs
-- **Export Studio**: Generate output in various formats with preview
+- **Tome Binder**: Generate output in various formats with preview
 
-### 3.2 Workflow Screens (Inspired by Squibler.io but Simplified)
-1. **Project Creation**
+### 3.2 Workflow Screens
+1. **Story WizardProject Setup Interface**
    - Genre selection using shadcn/UI Select component with descriptions
    - Narrative type selection using shadcn/UI RadioGroup components
    - Tone and style adjustments using shadcn/UI Slider components
    - Target length and scope definition with shadcn/UI Input and Popover components
    - Project template gallery using shadcn/UI AspectRatio and Card components
 
-2. **Character Development Interface**
+2. **Character Workshop Interface**
    - Character profile cards using shadcn/UI Card components
    - Visual relationship mapping with Tailwind-styled connecting lines
    - AI-assisted character generation with shadcn/UI Button components
@@ -89,7 +89,20 @@
    - Accordion elements for progressive disclosure of character details
    - Hover cards for quick character information preview
 
-3. **Plot Development Interface**
+3. **Realm Crafter Interface**
+   - Location creation with shadcn/UI Form components
+   - Environment settings with shadcn/UI Slider components
+   - Physical space definition with shadcn/UI Input components
+
+4. **Artifact Vault Interface**
+   - AI-assisted object creation with shadcn/UI Form components
+   - Object properties with shadcn/UI Input components
+   - Object relationships with shadcn/UI Select components
+   - Object timeline with shadcn/UI Calendar component
+   - Object notes with shadcn/UI Textarea component
+   - Object development with shadcn/UI Accordion components
+
+5. **Plot Architect Development Interface**
    - Story arc visualization with simple beginning, middle, end structure
    - Plot point creation via shadcn/UI cards that can be dragged onto timeline
    - Visual plot thread connector with Tailwind-styled color-coded lines
@@ -97,7 +110,7 @@
    - Simplified story structure templates with tab interface (Hero's Journey, Three-Act, etc.)
    - Collapsible sections for advanced plotting features
 
-4. **Chapter Writing Environment**
+6. **Chapter Scribe Writing Environment**
    - TipTap-based text editor with Tailwind-styled formatting toolbar
    - Split-screen: context elements and writing area using shadcn/UI ResizablePanel
    - Character and plot reference sidebar with shadcn/UI Tabs and Avatar components
@@ -106,6 +119,17 @@
    - Reading level indicator with shadcn/UI Progress component
    - Command palette (shadcn/UI Command) for quick actions and formatting
 
+7. **Story Bible Interface**
+   - Categorized reference tabs with shadcn/UI Tabs and Card components
+   - Search functionality with shadcn/UI Input component
+   - Filtering options with shadcn/UI Select component
+   - Export options with shadcn/UI Button components to Tome Binder
+
+8. **Tome Binder Interface**
+   - Export options with shadcn/UI Button components to Tome Binder
+   - Preview options with shadcn/UI Button components to Tome Binder
+
+
 ### 3.3 AI Interaction Components (Kid-Friendly)
 - Guided chat interfaces using shadcn/UI Card and Dialog components
 - Simple "Give me ideas" buttons using shadcn/UI Button variants
@@ -113,7 +137,7 @@
 - Thumbs up/down feedback mechanism using shadcn/UI Toggle components
 - Visual context panel with shadcn/UI Badge components for active elements
 - Age-appropriate language filtering system with shadcn/UI Switch components
-- "Story Coach" feature using shadcn/UI Sheet component for slide-in tips
+- "Story Oracle" feature using shadcn/UI Sheet component for slide-in tips
 - Customized Tailwind color schemes for different AI assistant personalities
 
 ## 4. AI Integration
@@ -135,7 +159,7 @@
 ### 4.3 Sample Prompt Templates
 - **Character Creation**: "Create a character for a {genre} {narrative_type} with the following attributes: {attributes}. The character should connect to the existing characters {related_characters} and fit into the established theme of {theme}."
   
-- **Chapter Generation**: "Write a chapter for a {genre} {narrative_type} involving characters {characters} that advances the following plotlines: {plotlines}. This chapter should follow the events of {previous_chapter_summary} and maintain the established {tone} and {style}."
+- **Chapter Generation**: "Write a chapter for a {genre} {narrative_type} involving characters {characters} that advances the following plots: {plots}. This chapter should follow the events of {previous_chapter_summary} and maintain the established {tone} and {style}."
 
 - **Continuity Check**: "Review this draft chapter for consistency with previously established elements: {character_traits}, {plot_events}, {world_rules}. Identify any contradictions or inconsistencies."
 
@@ -157,8 +181,8 @@
 ### 5.2 World and Character Building
 1. Create main characters with AI assistance and character templates
 2. Develop character relationships using visual connector tool
-3. Define settings in the Settings Workshop with visual templates
-4. Create important objects in the Objects Workshop with simple forms
+3. Define settings in the Realm Crafter with visual templates
+4. Create important objects in the Artifact Vault with simple forms
 5. AI suggests additional details and connections with "Expand My World" button
 6. Simple questionnaires to help develop details without overwhelming users
 
@@ -170,7 +194,7 @@
 
 ### 5.4 Chapter/Act Development
 1. Select focus for chapter/act
-2. Choose involved characters and plotlines
+2. Choose involved characters and plots
 3. Set chapter goals and key events
 4. AI generates draft content based on all context
 5. User reviews, edits, and finalizes

@@ -33,6 +33,7 @@ import TestPage from './pages/TestPage';
 const Dashboard = React.lazy(() => import('./pages/dashboard/DashboardPage'));
 const Projects = React.lazy(() => import('./pages/projects/ProjectsPage'));
 const CreateProject = React.lazy(() => import('./pages/projects/create'));
+const ProjectDetail = React.lazy(() => import('./pages/projects/ProjectDetailPage'));
 
 /**
  * Main App Component
@@ -82,6 +83,26 @@ const App: React.FC = () => {
                       <Route path="projects/new" element={
                         <React.Suspense fallback={<LoadingFallback />}>
                           <CreateProject />
+                        </React.Suspense>
+                      } />
+                      <Route path="projects/:id" element={
+                        <React.Suspense fallback={<LoadingFallback />}>
+                          <ProjectDetail />
+                        </React.Suspense>
+                      } />
+                      <Route path="projects/:id/edit" element={
+                        <React.Suspense fallback={<LoadingFallback />}>
+                          <ProjectDetail initialTab="edit" />
+                        </React.Suspense>
+                      } />
+                      <Route path="projects/:id/settings" element={
+                        <React.Suspense fallback={<LoadingFallback />}>
+                          <ProjectDetail initialTab="settings" />
+                        </React.Suspense>
+                      } />
+                      <Route path="projects/:id/share" element={
+                        <React.Suspense fallback={<LoadingFallback />}>
+                          <ProjectDetail initialTab="share" />
                         </React.Suspense>
                       } />
                       <Route path="test-inside" element={<TestPage />} />

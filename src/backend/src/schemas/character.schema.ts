@@ -94,6 +94,7 @@ export const createCharacterSchema = z.object({
   attributes: attributesSchema.optional().default({}),
   relationships: z.array(relationshipSchema).optional().default([]),
   plotInvolvement: z.array(objectIdSchema).optional().default([]),
+  possessions: z.array(objectIdSchema).optional().default([]),
   imageUrl: z.string().optional(),
   notes: z.string().optional()
 });

@@ -36,6 +36,7 @@ The schema file includes types for:
 - **Project Management**: Projects, collaborators, etc.
 - **Character Management**: Characters, relationships, etc.
 - **Setting Management**: Settings, locations, etc.
+- **Artifact Management**: Objects, properties, etc.
 - **Plot Management**: Plots, plot elements, etc.
 - **Chapter Management**: Chapters, content, etc.
 - **Export Functionality**: Exports, configurations, etc.

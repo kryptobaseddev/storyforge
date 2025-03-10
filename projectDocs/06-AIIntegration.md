@@ -268,7 +268,7 @@ The frontend displays AI functionality through specialized UI components:
    - Suggestion insertion controls
    - Style and tone adjustment sliders
 
-4. **Story Coach Character**
+4. **Story Oracle Character**
    - Anthropomorphized AI assistant
    - Provides kid-friendly guidance
    - Offers contextual tips and suggestions

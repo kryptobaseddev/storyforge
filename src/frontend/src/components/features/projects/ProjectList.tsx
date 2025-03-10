@@ -1,14 +1,35 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProjectService } from '../../../hooks/useProjectService';
-import { getErrorMessage } from '../../../utils/errorHandler';
-import type { Project } from '../../../types/api';
+import { useProjectService } from '@/hooks/useProjectService';
+import { getErrorMessage } from '@/utils/errorHandler';
+import type { Project } from '@/schemas';
 
 const ProjectList: React.FC = () => {
   const navigate = useNavigate();
   const { getAllProjects, deleteProject } = useProjectService();
-  const { data: projects, isLoading, error } = getAllProjects();
+  const { data: projectsData, isLoading, error } = getAllProjects();
   const deleteMutation = deleteProject();
+
+  // Convert any Date objects to strings to match the Project interface
+  const projects = React.useMemo(() => {
+    if (!projectsData) return [];
+    
+    return projectsData.map(project => ({
+      ...project,
+      // Ensure dates are strings
+      createdAt: typeof project.createdAt === 'string' 
+        ? project.createdAt 
+        : new Date(project.createdAt).toISOString(),
+      updatedAt: typeof project.updatedAt === 'string' 
+        ? project.updatedAt 
+        : new Date(project.updatedAt).toISOString(),
+      completionDate: project.completionDate 
+        ? (typeof project.completionDate === 'string' 
+            ? project.completionDate 
+            : new Date(project.completionDate).toISOString())
+        : null
+    }));
+  }, [projectsData]);
 
   if (isLoading) {
     return <div className="flex justify-center p-8">Loading projects...</div>;
@@ -27,8 +48,8 @@ const ProjectList: React.FC = () => {
       try {
         await deleteMutation.mutateAsync({ id: projectId });
       } catch (err) {
-        console.error('Failed to delete project:', getErrorMessage(err));
-        alert(`Failed to delete project: ${getErrorMessage(err)}`);
+        console.error('Failed to delete project:', err);
+        alert('Failed to delete project. Please try again.');
       }
     }
   };

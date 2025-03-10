@@ -12,12 +12,14 @@ src/
 │   │   ├── ai/         (AI generation components)
 │   │   ├── auth/       (Authentication components)    
 │   │   ├── characters/ (Character management components)
+│   │   ├── object/    (Object management components)
 │   │   ├── projects/   (Project management components)
 │   │   ├── settings/   (Setting management components)
 │   │   ├── plots/      (Plot management components)
 │   │   ├── chapters/   (Chapter management components)
 │   │   └── exports/    (Export functionality components)
 │   ├── layout/         (Layout components)
+│   │   ├── ContentLayout.tsx
 │   │   ├── Header.tsx
 │   │   ├── Sidebar.tsx
 │   │   ├── Footer.tsx
@@ -25,14 +27,29 @@ src/
 │   ├── common/         (Common reusable components)
 │   └── ui/             (shadcn/UI components)
 ├── context/            (React context providers)
+│   ├── AuthContext.tsx
+│   ├── theme-provider.tsx
+│   └── UIContext.tsx
 ├── pages/              (Page components)
+│   ├── auth/
 │   ├── dashboard/
-│   └── projects/
-├── lib/                (Utility functions)
+│   ├── projects/
+│   │   ├── characters/
+│   │   ├── objects/
+│   │   ├── settings/
+│   │   ├── plots/
+│   │   ├── chapters/
+│   │   └── exports/
+├── utils/                (Utility functions)
+│   ├── trpc.ts           (tRPC client setup)
+│   ├── errorHandler.ts   (Error handling)
+│   └── utils.ts         (Utility functions contains 'cn' for tailwind)
 ├── hooks/              (Custom React hooks)
 │   ├── useAuthService.ts
 │   ├── useProjectService.ts
 │   ├── useCharacterService.ts
+│   │   ├── useCharacterRelationships.ts (Character relationships management)
+│   │   └── useCharacterPossessions.ts (Character possessions management)
 │   ├── useSettingService.ts
 │   ├── usePlotService.ts
 │   ├── useChapterService.ts
@@ -40,9 +57,8 @@ src/
 │   ├── useAIService.ts
 │   ├── useUserService.ts
 │   └── useToast.ts
-├── services/           (API service modules)
-│   ├── api.ts          (Base API client)
-│   └── error-handler.ts
+├── schemas/           (tRPC API schema)
+│   └── index.ts          (Types generated from backend tRPC schemas)
 ├── assets/             (Static resources)
 ├── App.tsx             (Main application component)
 ├── App.css             (Global styles)
@@ -67,7 +83,8 @@ src/components/features/
 ├── auth/                      (Authentication components)
 │   ├── LoginForm.tsx          (User login - uses auth.login)
 │   ├── RegisterForm.tsx       (User registration - uses auth.register)
-│   ├── ForgotPasswordForm.tsx (Password recovery)
+│   ├── ForgotPasswordForm.tsx (Password recovery - uses auth.forgotPassword)
+│   ├── ResetPasswordForm.tsx  (Reset password - uses auth.resetPassword)
 │   └── VerifyTokenForm.tsx    (Verify JWT token - uses auth.verifyToken)
 ├── user/                      (User profile components)
 │   ├── ProfileForm.tsx        (User profile editing - uses user.updateProfile)
@@ -78,30 +95,50 @@ src/components/features/
 │   ├── CharacterCard.tsx      (Individual character display)
 │   ├── CharacterForm.tsx      (Character creation/editing - uses character.create & character.update)
 │   ├── CharacterDetail.tsx    (View character details - uses character.getById)
-│   └── CharacterDelete.tsx    (Delete character - uses character.delete)
+│   ├── CharacterDelete.tsx    (Delete character - uses character.delete)
+│   ├── CharacterRelationships.tsx (Manage character relationships - uses character.getRelationships & character.updateRelationships)
+│   ├── RelationshipGraph.tsx  (Visual display of character relationships)
+│   ├── CharacterPossessions.tsx (Manage character possessions - uses character.update & object.getByOwner)
+│   └── PossessionManager.tsx  (Add/remove possessions for a character - uses object.getAll)
 ├── projects/                  (Project management)
 │   ├── ProjectList.tsx        (List of projects - uses project.getAllByUser)
 │   ├── ProjectCard.tsx        (Individual project display)
 │   ├── ProjectForm.tsx        (Project creation/editing - uses project.create & project.update)
 │   ├── ProjectDetail.tsx      (View project details - uses project.getById)
 │   ├── ProjectDelete.tsx      (Delete project - uses project.delete)
-│   └── ProjectStats.tsx       (Project statistics - uses project.getStats)
+│   ├── ProjectStats.tsx       (Project statistics - uses project.getStats)
+│   ├── CollaboratorList.tsx   (List project collaborators - uses project.getCollaborators)
+│   └── CollaboratorForm.tsx   (Add/remove collaborators - uses project.addCollaborator & project.removeCollaborator)
+├── object/                   (Object management)
+│   ├── ObjectList.tsx         (List of objects - uses object.getAll)
+│   ├── ObjectCard.tsx         (Individual object display)
+│   ├── ObjectForm.tsx         (Object creation/editing - uses object.create & object.update)
+│   ├── ObjectDetail.tsx       (View object details - uses object.getById)
+│   ├── ObjectDelete.tsx       (Delete object - uses object.delete)
+│   ├── ObjectSearch.tsx       (Search objects - uses object.search)
+│   ├── CharacterObjectsList.tsx (Objects owned by character - uses object.getByOwner)
+│   ├── ObjectOwnershipForm.tsx (Assign objects to characters - uses character.update)
+│   └── LocationObjectsList.tsx (Objects at location - uses object.getByLocation)
 ├── settings/                  (Setting management)
 │   ├── SettingList.tsx        (List of settings - uses setting.getAllByProject)
 │   ├── SettingCard.tsx        (Individual setting display)
 │   ├── SettingForm.tsx        (Setting creation/editing - uses setting.create & setting.update)
 │   ├── SettingDetail.tsx      (View setting details - uses setting.getById)
-│   └── SettingDelete.tsx      (Delete setting - uses setting.delete)
+│   ├── SettingDelete.tsx      (Delete setting - uses setting.delete)
+│   └── LocationEditor.tsx     (Edit setting locations - uses setting.updateLocation)
 ├── plots/                     (Plot management)
 │   ├── PlotList.tsx           (List of plots - uses plot.getAllByProject)
 │   ├── PlotCard.tsx           (Individual plot display)
 │   ├── PlotForm.tsx           (Plot creation/editing - uses plot.create & plot.update)
 │   ├── PlotDetail.tsx         (View plot details - uses plot.getById)
-│   └── PlotDelete.tsx         (Delete plot - uses plot.delete)
+│   ├── PlotDelete.tsx         (Delete plot - uses plot.delete)
+│   ├── PlotPointsList.tsx     (List plot points - uses plot.getPlotPoints)
+│   ├── PlotPointsEditor.tsx   (Edit plot points - uses plot.updatePlotPoints)
+│   └── PlotPointsReorder.tsx  (Reorder plot points - uses plot.reorderPlotPoints)
 ├── chapters/                  (Chapter management)
 │   ├── ChapterList.tsx        (List of chapters - uses chapter.getAllByProject)
 │   ├── ChapterCard.tsx        (Individual chapter display)
-│   ├── ChapterEditor.tsx      (Rich text editor for chapters - uses chapter.updateContent)
+│   ├── ChapterEditor.tsx      (Rich text editor for chapters - uses chapter.updateContent & chapter.getContent)
 │   ├── ChapterDetail.tsx      (View chapter details - uses chapter.getById)
 │   ├── ChapterForm.tsx        (Chapter creation/editing - uses chapter.create & chapter.update)
 │   ├── ChapterDelete.tsx      (Delete chapter - uses chapter.delete)
@@ -111,16 +148,17 @@ src/components/features/
     ├── ExportForm.tsx         (Export configuration - uses export.createExport)
     ├── ExportDetail.tsx       (View export details - uses export.getExportById)
     ├── ExportDelete.tsx       (Delete export - uses export.deleteExport)
-    └── ExportDownload.tsx     (Download export - uses export.downloadExport)
+    ├── ExportDownload.tsx     (Download export - uses export.downloadExport)
+    └── ExportFormatSelector.tsx (Select export format - uses export.getFormats)
 ```
 
 ### 2. Layout Components
 ```
 src/components/layout/
 ├── MainLayout.tsx      (Main application layout wrapper)
-├── Header.tsx          (Application header with navigation)
-├── Sidebar.tsx         (Side navigation menu)
-├── Footer.tsx          (Application footer)
+├── Header.tsx          (Application header with navigation contextually based on user authentication status)
+├── Sidebar.tsx         (Side navigation menu for authenticated users)
+├── Footer.tsx          (Application footer for main landing page only)
 ├── ProjectLayout.tsx   (Project-specific layout)
 └── ContentLayout.tsx   (Content area layout with breadcrumbs)
 ```
@@ -165,32 +203,46 @@ src/pages/
 │   ├── LoginPage.tsx
 │   ├── RegisterPage.tsx
 │   ├── ForgotPasswordPage.tsx
+│   ├── ResetPasswordPage.tsx
 │   └── ProfilePage.tsx
 ├── dashboard/
 │   └── DashboardPage.tsx
 ├── projects/
 │   ├── ProjectsPage.tsx
 │   ├── ProjectDetailPage.tsx
-│   └── ProjectCreatePage.tsx
+│   ├── ProjectCreatePage.tsx
+│   └── ProjectCollaboratorsPage.tsx
 ├── characters/
 │   ├── CharactersPage.tsx
 │   ├── CharacterDetailPage.tsx
-│   └── CharacterCreatePage.tsx
+│   ├── CharacterCreatePage.tsx
+│   ├── CharacterRelationshipsPage.tsx
+│   └── CharacterPossessionsPage.tsx
+├── objects/
+│   ├── ObjectsPage.tsx
+│   ├── ObjectDetailPage.tsx
+│   ├── ObjectCreatePage.tsx
+│   ├── ObjectsByCharacterPage.tsx
+│   └── ObjectsByLocationPage.tsx
 ├── settings/
 │   ├── SettingsPage.tsx
 │   ├── SettingDetailPage.tsx
-│   └── SettingCreatePage.tsx
+│   ├── SettingCreatePage.tsx
+│   └── LocationEditorPage.tsx
 ├── plots/
 │   ├── PlotsPage.tsx
 │   ├── PlotDetailPage.tsx
-│   └── PlotCreatePage.tsx
+│   ├── PlotCreatePage.tsx
+│   └── PlotPointsPage.tsx
 ├── chapters/
 │   ├── ChaptersPage.tsx
 │   ├── ChapterDetailPage.tsx
-│   └── ChapterCreatePage.tsx
+│   ├── ChapterCreatePage.tsx
+│   └── ChapterEditorPage.tsx
 └── exports/
     ├── ExportsPage.tsx
-    └── ExportCreatePage.tsx
+    ├── ExportCreatePage.tsx
+    └── ExportDetailPage.tsx
 ```
 
 ## API Service Hooks
@@ -203,6 +255,8 @@ src/hooks/
 ├── useUserService.ts     (User profile endpoints - user.*)
 ├── useProjectService.ts  (Project management endpoints - project.*)
 ├── useCharacterService.ts (Character management endpoints - character.*)
+│   ├── useCharacterRelationships.ts (Character relationships management)
+│   └── useCharacterPossessions.ts (Character possessions management)
 ├── useSettingService.ts  (Setting management endpoints - setting.*)
 ├── usePlotService.ts     (Plot management endpoints - plot.*)
 ├── useChapterService.ts  (Chapter management endpoints - chapter.*)
@@ -223,6 +277,8 @@ The frontend integrates with the backend tRPC API endpoints as defined in our `s
    - `auth.register` - User registration
    - `auth.login` - User login
    - `auth.verifyToken` - Token verification
+   - `auth.forgotPassword` - Request password reset *(MISSING IN CURRENT PLAN)*
+   - `auth.resetPassword` - Reset password with token *(MISSING IN CURRENT PLAN)*
 
 2. **User Services** - `user.*` endpoints
    - `user.getProfile` - Get user profile
@@ -237,29 +293,51 @@ The frontend integrates with the backend tRPC API endpoints as defined in our `s
    - `project.delete` - Delete project
    - `project.getAllByUser` - Get all user projects
    - `project.getStats` - Project statistics
+   - `project.addCollaborator` - Add a collaborator to a project *(MISSING IN CURRENT PLAN)*
+   - `project.removeCollaborator` - Remove a collaborator from a project *(MISSING IN CURRENT PLAN)*
+   - `project.getCollaborators` - Get project collaborators *(MISSING IN CURRENT PLAN)*
 
 4. **Character Services** - `character.*` endpoints
    - `character.create` - Create character
    - `character.getById` - Get character details
-   - `character.update` - Update character
+   - `character.update` - Update character (includes updating possessions array)
    - `character.delete` - Delete character
    - `character.getAllByProject` - Get all characters in project
+   - `character.updateRelationships` - Update character relationships *(MISSING IN CURRENT PLAN)*
+   - `character.getRelationships` - Get character relationships *(MISSING IN CURRENT PLAN)*
+   - `character.addPossession` - Add object to character possessions *(MISSING IN CURRENT PLAN)*
+   - `character.removePossession` - Remove object from character possessions *(MISSING IN CURRENT PLAN)*
+   - `character.getPossessions` - Get character possessions *(MISSING IN CURRENT PLAN)*
 
-5. **Setting Services** - `setting.*` endpoints
+5. **Object Services** - `object.*` endpoints
+   - `object.create` - Create object
+   - `object.getById` - Get object details
+   - `object.update` - Update object
+   - `object.delete` - Delete object
+   - `object.getAll` - Get all objects in project *(RENAMED: was `object.getAllByProject` in plan)*
+   - `object.getByOwner` - Get objects owned by a character *(MISSING IN CURRENT PLAN)*
+   - `object.getByLocation` - Get objects at a location *(MISSING IN CURRENT PLAN)*
+   - `object.search` - Search objects by query *(MISSING IN CURRENT PLAN)*
+
+6. **Setting Services** - `setting.*` endpoints
    - `setting.create` - Create setting
    - `setting.getById` - Get setting details
    - `setting.update` - Update setting
    - `setting.delete` - Delete setting
    - `setting.getAllByProject` - Get all settings in project
+   - `setting.updateLocation` - Update setting location data *(MISSING IN CURRENT PLAN)*
 
-6. **Plot Services** - `plot.*` endpoints
+7. **Plot Services** - `plot.*` endpoints
    - `plot.create` - Create plot
    - `plot.getById` - Get plot details
    - `plot.update` - Update plot
    - `plot.delete` - Delete plot
    - `plot.getAllByProject` - Get all plots in project
+   - `plot.updatePlotPoints` - Update plot points *(MISSING IN CURRENT PLAN)*
+   - `plot.getPlotPoints` - Get plot points *(MISSING IN CURRENT PLAN)*
+   - `plot.reorderPlotPoints` - Reorder plot points *(MISSING IN CURRENT PLAN)*
 
-7. **Chapter Services** - `chapter.*` endpoints
+8. **Chapter Services** - `chapter.*` endpoints
    - `chapter.create` - Create chapter
    - `chapter.getById` - Get chapter details
    - `chapter.update` - Update chapter
@@ -267,19 +345,26 @@ The frontend integrates with the backend tRPC API endpoints as defined in our `s
    - `chapter.getAllByProject` - Get all chapters in project
    - `chapter.updateContent` - Update chapter content
    - `chapter.reorderChapters` - Change chapter order
+   - `chapter.getContent` - Get chapter content *(MISSING IN CURRENT PLAN)*
 
-8. **AI Services** - `ai.*` endpoints
+9. **AI Services** - `ai.*` endpoints
    - `ai.generateText` - Generate text
    - `ai.continueText` - Continue text
    - `ai.getSuggestions` - Get writing suggestions
    - `ai.analyzeText` - Analyze text
+   - `ai.generateImage` - Generate image *(PLANNED BUT NOT IMPLEMENTED)*
+   - `ai.generateObject` - Generate object *(PLANNED BUT NOT IMPLEMENTED)*
+   - `ai.generateSetting` - Generate setting *(PLANNED BUT NOT IMPLEMENTED)*
+   - `ai.generatePlot` - Generate plot *(PLANNED BUT NOT IMPLEMENTED)*
+   - `ai.generateChapter` - Generate chapter *(PLANNED BUT NOT IMPLEMENTED)*
 
-9. **Export Services** - `export.*` endpoints
+10. **Export Services** - `export.*` endpoints
    - `export.createExport` - Create export
    - `export.getExportById` - Get export details
    - `export.getAllByProject` - Get all exports for project
    - `export.deleteExport` - Delete export
    - `export.downloadExport` - Download export file
+   - `export.getFormats` - Get available export formats *(MISSING IN CURRENT PLAN)*
 
 ## Implementation Phases (Revised)
 
@@ -296,6 +381,7 @@ The frontend integrates with the backend tRPC API endpoints as defined in our `s
 
 ### Phase 3: Content Creation
 - Character management
+- Object management
 - Setting management
 - Plot management
 - Chapter management and editor
@@ -323,10 +409,11 @@ All components adhere to the accessibility guidelines outlined in the design doc
    - Implement Project Collaborators feature
 
 2. **Implement Content Creation Components**
-   - Build Character Workshop components
-   - Build Setting components
-   - Develop Plot Architect components
-   - Create Chapter Forge editor
+   - Build Character Workshop components with relationship management
+   - Build Character Possessions management
+   - Build Setting components with location editing
+   - Develop Plot Architect components with plot points management
+   - Create Chapter Scribe editor with content management
 
 3. **Develop AI Integration**
    - Build AI generation forms
@@ -334,6 +421,6 @@ All components adhere to the accessibility guidelines outlined in the design doc
    - Create text analysis tools
 
 4. **Create Export Functionality**
-   - Implement export configuration form
+   - Implement export configuration form with format selection
    - Build export preview
-   - Add download functionality 
+   - Add download functionality

@@ -1,27 +1,28 @@
 import { useState } from 'react';
-import { CharacterData } from '../../../lib/api';
+import { Character, CreateCharacterInput } from '@/schemas';
 
+// TODO: Fix the form to use the proper Character Schema
 interface CharacterFormProps {
-  initialData?: CharacterData;
+  initialData?: Partial<Character>;
   projectId: string;
-  onSubmit: (data: CharacterData) => void;
+  onSubmit: (data: CreateCharacterInput, projectId: string) => void;
   onCancel: () => void;
 }
 
 export function CharacterForm({
   initialData,
+  projectId,
   onSubmit,
   onCancel,
 }: CharacterFormProps) {
-  const [character, setCharacter] = useState<CharacterData>(
-    initialData || {
-      name: '',
-      role: '',
-      description: '',
-      traits: [],
-      backstory: '',
-    }
-  );
+  const [character, setCharacter] = useState<CreateCharacterInput>({
+    name: initialData?.name || '',
+    role: initialData?.role || '',
+    shortDescription: initialData?.shortDescription || '',
+    detailedBackground: initialData?.detailedBackground || '',
+    possessions: initialData?.possessions || [],
+    // Initialize other fields as needed
+  });
 
   const [trait, setTrait] = useState('');
 
@@ -33,26 +34,42 @@ export function CharacterForm({
   };
 
   const handleAddTrait = () => {
-    if (trait.trim() && !character.traits?.includes(trait.trim())) {
-      setCharacter((prev) => ({
-        ...prev,
-        traits: [...(prev.traits || []), trait.trim()],
-      }));
+    if (trait.trim()) {
+      // Add trait to attributes if it doesn't exist
+      setCharacter((prev) => {
+        const attributes = { ...(prev.attributes || {}) };
+        attributes[`trait_${Date.now()}`] = trait.trim();
+        return {
+          ...prev,
+          attributes,
+        };
+      });
       setTrait('');
     }
   };
 
-  const handleRemoveTrait = (traitToRemove: string) => {
-    setCharacter((prev) => ({
-      ...prev,
-      traits: prev.traits?.filter((t) => t !== traitToRemove),
-    }));
+  const handleRemoveTrait = (traitKey: string) => {
+    setCharacter((prev) => {
+      const attributes = { ...(prev.attributes || {}) };
+      delete attributes[traitKey];
+      return {
+        ...prev,
+        attributes,
+      };
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(character);
+    onSubmit(character, projectId);
   };
+
+  // Get traits from attributes for display
+  const traits = character.attributes 
+    ? Object.entries(character.attributes)
+      .filter(([key]) => key.startsWith('trait_'))
+      .map(([key, value]) => ({ key, value: String(value) }))
+    : [];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -86,9 +103,8 @@ export function CharacterForm({
           <select
             id="role"
             name="role"
-            value={character.role}
+            value={character.role || ''}
             onChange={handleChange}
-            required
             className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <option value="">Select a role</option>
@@ -103,17 +119,16 @@ export function CharacterForm({
 
         <div>
           <label
-            htmlFor="description"
+            htmlFor="shortDescription"
             className="block text-sm font-medium text-foreground"
           >
             Description
           </label>
           <textarea
-            id="description"
-            name="description"
-            value={character.description}
+            id="shortDescription"
+            name="shortDescription"
+            value={character.shortDescription || ''}
             onChange={handleChange}
-            required
             rows={3}
             className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             placeholder="Describe your character"
@@ -144,17 +159,17 @@ export function CharacterForm({
               Add
             </button>
           </div>
-          {character.traits && character.traits.length > 0 && (
+          {traits.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
-              {character.traits.map((t) => (
+              {traits.map(({ key, value }) => (
                 <span
-                  key={t}
+                  key={key}
                   className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
                 >
-                  {t}
+                  {value}
                   <button
                     type="button"
-                    onClick={() => handleRemoveTrait(t)}
+                    onClick={() => handleRemoveTrait(key)}
                     className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-primary hover:bg-primary/20"
                   >
                     ×
@@ -167,15 +182,15 @@ export function CharacterForm({
 
         <div>
           <label
-            htmlFor="backstory"
+            htmlFor="detailedBackground"
             className="block text-sm font-medium text-foreground"
           >
             Backstory
           </label>
           <textarea
-            id="backstory"
-            name="backstory"
-            value={character.backstory || ''}
+            id="detailedBackground"
+            name="detailedBackground"
+            value={character.detailedBackground || ''}
             onChange={handleChange}
             rows={5}
             className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -196,7 +211,7 @@ export function CharacterForm({
           type="submit"
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
-          {initialData ? 'Update Character' : 'Create Character'}
+          {initialData?.id ? 'Update Character' : 'Create Character'}
         </button>
       </div>
     </form>

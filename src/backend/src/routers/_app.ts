@@ -16,6 +16,7 @@ import { userRouter } from './user.router';
 import { chapterRouter } from './chapter.router';
 import { aiRouter } from './ai.router';
 import { exportRouter } from './export.router';
+import { objectRouter } from './object.router';
 
 /**
  * Create the root router
@@ -32,6 +33,7 @@ export const appRouter = router({
   chapter: chapterRouter,
   ai: aiRouter,
   export: exportRouter,
+  object: objectRouter,
 });
 
 // Export type definition of API

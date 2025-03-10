@@ -7,7 +7,7 @@ import ContentLayout from '../../components/layout/ContentLayout';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent } from '../../components/ui/card';
-import type { Project } from '../../types/api';
+import type { Project } from '@/schemas';
 
 /**
  * Projects Page
@@ -21,8 +21,13 @@ const ProjectsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   
   // Use the project service hook to fetch projects
-  const { getAllProjects } = useProjectService();
+  const { getAllProjects, prefetchProject } = useProjectService();
   const { data: projectsData, isLoading, error } = getAllProjects();
+  
+  // Handle project hover to prefetch data
+  const handleProjectHover = (projectId: string) => {
+    prefetchProject(projectId);
+  };
   
   // Filter projects based on search term and filters
   const filteredProjects = React.useMemo(() => {
@@ -149,7 +154,11 @@ const ProjectsPage: React.FC = () => {
             const typedProject = project as unknown as Project;
             
             return (
-              <div key={project.id} className="bg-card text-card-foreground rounded-lg shadow overflow-hidden flex flex-col">
+              <div 
+                key={project.id} 
+                className="bg-card text-card-foreground rounded-lg shadow overflow-hidden flex flex-col"
+                onMouseEnter={() => handleProjectHover(project.id)}
+              >
                 <div className="p-6 flex-1">
                   <h2 className="text-xl font-semibold text-foreground">
                     {project.title}
@@ -197,10 +206,12 @@ const ProjectsPage: React.FC = () => {
                         Open
                       </Link>
                     </Button>
-                    <Button variant="outline" size="icon" onClick={() => navigate(`/projects/${project.id}/edit`)}>
-                      <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
+                    <Button variant="outline" size="icon" asChild>
+                      <Link to={`/projects/${project.id}/edit`}>
+                        <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </Link>
                     </Button>
                   </div>
                 </div>

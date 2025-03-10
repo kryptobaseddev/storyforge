@@ -199,7 +199,7 @@ The dashboard provides an overview of the user's projects and quick access to ke
 The initial configuration screen for creating a new story project.
 
 **Components:**
-- `SetupWizard`: Multi-step form with progress indicator
+- `StoryWizard`: Multi-step form with progress indicator
 - `GenreSelector`: Genre selection cards with illustrations
 - `NarrativeTypeSelector`: Narrative type selection radio buttons
 - `ToneStyleControls`: Tone and style sliders
@@ -353,11 +353,11 @@ Interface for exporting the story in various formats.
 - `InteractiveTutorials`: Step-by-step tutorials for new users
 - `ContextualHelpCards`: Context-sensitive help cards
 - `FeedbackMessages`: Encouraging feedback messages
-- `StoryCoachCharacter`: Animated coach character that provides tips
-- `GuidedSetupWizard`: Step-by-step process for new projects
+- `StoryOracleCharacter`: Animated Oracle character that provides tips
+- `GuidedStoryWizard`: Step-by-step process for new projects
 - `ProgressCelebration`: Animations and messages for achievements
 
-### AI Assistant Interface
+### AI Assistant Interface (Story Oracle)
 - `SuggestionCards`: Cards showing AI-generated suggestions
 - `MagicWandButton`: One-click AI generation buttons
 - `ContextAwareHelpPanel`: Help based on current context
@@ -500,7 +500,7 @@ State management is implemented using:
    - Interactive tutorials for new users
    - Contextual help throughout the application
    - Encouraging feedback for progress
-   - "Story Coach" character that provides tips
+   - "Story Oracle" character that provides tips
    - Age-appropriate language
    - Encouraging messaging
 

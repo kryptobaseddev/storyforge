@@ -1,7 +1,7 @@
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
-import { cn } from "../../lib/utils";
+import { cn } from "../../utils/utils";
 
 interface LayoutProps {
   children: React.ReactNode;

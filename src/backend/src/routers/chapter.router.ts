@@ -54,7 +54,7 @@ const formatChapterResponse = (chapter: any) => {
     wordCount: chapter.wordCount,
     characters: chapter.characters.map((id: any) => id.toString()),
     settings: chapter.settings.map((id: any) => id.toString()),
-    plotlines: chapter.plotlines.map((id: any) => id.toString()),
+    plots: chapter.plots.map((id: any) => id.toString()),
     objects: chapter.objects.map((id: any) => id.toString()),
     notes: chapter.notes,
     aiGenerated: chapter.aiGenerated,
@@ -141,7 +141,7 @@ export const chapterRouter = router({
         projectId: new ObjectId(input.projectId),
         characters: input.characters?.map(id => new ObjectId(id)) || [],
         settings: input.settings?.map(id => new ObjectId(id)) || [],
-        plotlines: input.plotlines?.map(id => new ObjectId(id)) || [],
+        plots: input.plots?.map(id => new ObjectId(id)) || [],
         objects: input.objects?.map(id => new ObjectId(id)) || [],
         wordCount: input.content ? input.content.split(/\s+/).filter(word => word.length > 0).length : 0
       });
@@ -184,7 +184,7 @@ export const chapterRouter = router({
       if (input.data.status !== undefined) chapter.status = input.data.status;
       if (input.data.characters !== undefined) chapter.characters = input.data.characters.map(id => new ObjectId(id));
       if (input.data.settings !== undefined) chapter.settings = input.data.settings.map(id => new ObjectId(id));
-      if (input.data.plotlines !== undefined) chapter.plotlines = input.data.plotlines.map(id => new ObjectId(id));
+      if (input.data.plots !== undefined) chapter.plots = input.data.plots.map(id => new ObjectId(id));
       if (input.data.objects !== undefined) chapter.objects = input.data.objects.map(id => new ObjectId(id));
       if (input.data.notes !== undefined) chapter.notes = input.data.notes;
       if (input.data.aiGenerated !== undefined) chapter.aiGenerated = input.data.aiGenerated;

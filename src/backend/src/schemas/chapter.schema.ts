@@ -50,7 +50,7 @@ export const createChapterSchema = z.object({
   status: chapterStatusEnum.default('Draft'),
   characters: z.array(objectIdSchema).default([]),
   settings: z.array(objectIdSchema).default([]),
-  plotlines: z.array(objectIdSchema).default([]),
+  plots: z.array(objectIdSchema).default([]),
   objects: z.array(objectIdSchema).default([]),
   notes: z.string().optional(),
   aiGenerated: aiGeneratedSchema.optional().default({

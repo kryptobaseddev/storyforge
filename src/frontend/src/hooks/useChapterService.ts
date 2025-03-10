@@ -3,14 +3,28 @@ import { trpc } from '../utils/trpc';
 export const useChapterService = () => {
   const utils = trpc.useContext();
 
-  // Get all chapters for a project
+  // Get all chapters for a project with caching
   const getAllChapters = (projectId: string) => {
-    return trpc.chapter.getAll.useQuery({ projectId });
+    return trpc.chapter.getAll.useQuery({ projectId }, {
+      // Keep data fresh for 5 minutes
+      staleTime: 5 * 60 * 1000,
+      // Cache data for 10 minutes
+      cacheTime: 10 * 60 * 1000,
+      // Enable this to only fetch when projectId is available
+      enabled: !!projectId,
+    });
   };
 
-  // Get a single chapter by ID
+  // Get a single chapter by ID with caching
   const getChapter = (projectId: string, chapterId: string) => {
-    return trpc.chapter.getById.useQuery({ projectId, chapterId });
+    return trpc.chapter.getById.useQuery({ projectId, chapterId }, {
+      // Keep data fresh for 5 minutes
+      staleTime: 5 * 60 * 1000,
+      // Cache data for 10 minutes
+      cacheTime: 10 * 60 * 1000,
+      // Enable this to only fetch when both IDs are available
+      enabled: !!projectId && !!chapterId,
+    });
   };
 
   // Create a new chapter

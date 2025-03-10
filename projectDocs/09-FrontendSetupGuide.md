@@ -214,7 +214,7 @@ When prompted, choose the following options:
 - CSS variables: Yes
 - Tailwind.config.js location: tailwind.config.js
 - Components directory: src/components
-- Utils directory: src/lib/utils
+- Utils directory: src/utils
 - Include React Server Components: No (for now)
 
 ### 5. Create Component Directory Structure
@@ -232,8 +232,8 @@ src/
 │   │   ├── characters/ # Character-related components
 │   │   └── ai/       # AI-related components
 │   └── common/       # Common/shared components
-├── lib/
-│   └── utils.ts      # Utility functions
+├── utils/
+│   └── cn.ts      # Utility functions
 ├── styles/
 │   └── globals.css   # Global styles (if needed beyond index.css)
 ├── pages/            # Page components

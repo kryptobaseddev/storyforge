@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
-import { aiApi, GenerationPrompt } from '../../../lib/api';
+import { trpc } from '@/utils/trpc';
+
+// TODO: Fix the AIAssistant to use the proper AI API
 
 interface AIAssistantProps {
   onInsert: (content: string) => void;
@@ -12,6 +14,9 @@ export function AIAssistant({ onInsert, contextType }: AIAssistantProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState('');
+  
+  // Use the tRPC mutation for AI generation
+  const generateMutation = trpc.ai.generateContent.useMutation();
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -21,15 +26,42 @@ export function AIAssistant({ onInsert, contextType }: AIAssistantProps) {
     setResult('');
 
     try {
-      const generationPrompt: GenerationPrompt = {
-        prompt,
-        type: contextType,
+      // Create the request payload
+      const payload = {
+        content: prompt,
+        project_id: 'current', // This will be resolved on the server
+        user_id: 'current',    // This will be resolved on the server
       };
 
-      const response = await aiApi.generate(generationPrompt);
-      setResult(response.data.content);
+      // Add the task based on contextType
+      if (contextType === 'character') {
+        const response = await generateMutation.mutateAsync({
+          ...payload,
+          task: 'character'
+        });
+        setResult(response.content);
+      } else if (contextType === 'plot') {
+        const response = await generateMutation.mutateAsync({
+          ...payload,
+          task: 'plot'
+        });
+        setResult(response.content);
+      } else if (contextType === 'setting') {
+        const response = await generateMutation.mutateAsync({
+          ...payload,
+          task: 'setting'
+        });
+        setResult(response.content);
+      } else {
+        // Default to editorial for text
+        const response = await generateMutation.mutateAsync({
+          ...payload,
+          task: 'editorial'
+        });
+        setResult(response.content);
+      }
     } catch (err) {
-      console.error('AI generation error:', err);
+      console.error('AI generation failed:', err);
       setError('Failed to generate content. Please try again.');
     } finally {
       setIsLoading(false);
@@ -39,33 +71,31 @@ export function AIAssistant({ onInsert, contextType }: AIAssistantProps) {
   const handleInsert = () => {
     if (result) {
       onInsert(result);
-      setResult('');
-      setPrompt('');
     }
   };
 
   return (
-    <div className="rounded-lg border bg-card p-4 shadow-sm">
-      <div className="mb-4 flex items-center">
-        <Sparkles className="mr-2 h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold">AI Assistant</h3>
+    <div className="border rounded-md p-4 bg-card">
+      <div className="flex items-center mb-4">
+        <Sparkles className="h-5 w-5 text-primary mr-2" />
+        <h3 className="text-lg font-medium">AI Assistant</h3>
       </div>
 
       <div className="space-y-4">
         <div>
           <label
-            htmlFor="ai-prompt"
-            className="block text-sm font-medium text-foreground"
+            htmlFor="prompt"
+            className="block text-sm font-medium text-foreground mb-1"
           >
-            What would you like help with?
+            What would you like to generate?
           </label>
           <textarea
-            id="ai-prompt"
+            id="prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder={getPlaceholder(contextType)}
             rows={3}
-            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
 
@@ -81,32 +111,30 @@ export function AIAssistant({ onInsert, contextType }: AIAssistantProps) {
                 Generating...
               </>
             ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Generate
-              </>
+              <>Generate</>
             )}
           </button>
         </div>
 
         {error && (
-          <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+          <div className="text-sm text-red-500 p-2 border border-red-200 rounded bg-red-50">
             {error}
           </div>
         )}
 
         {result && (
-          <div className="space-y-3">
-            <div className="rounded-md bg-muted p-3 text-sm">
-              <p className="whitespace-pre-wrap">{result}</p>
-            </div>
-            <div className="flex justify-end">
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-medium">Generated Content</h4>
               <button
                 onClick={handleInsert}
-                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                className="text-xs text-primary hover:text-primary/80"
               >
                 Insert
               </button>
+            </div>
+            <div className="p-3 bg-muted rounded-md text-sm whitespace-pre-wrap">
+              {result}
             </div>
           </div>
         )}
@@ -118,14 +146,13 @@ export function AIAssistant({ onInsert, contextType }: AIAssistantProps) {
 function getPlaceholder(contextType: string): string {
   switch (contextType) {
     case 'character':
-      return 'E.g., "Create a brave young hero with a mysterious past"';
+      return 'Describe a character for my story...';
     case 'plot':
-      return 'E.g., "Help me develop a plot twist for the middle of my story"';
+      return 'Generate a plot idea or scene...';
     case 'setting':
-      return 'E.g., "Describe a magical forest with ancient trees and mystical creatures"';
+      return 'Describe a setting or location...';
     case 'text':
-      return 'E.g., "Write a paragraph about the main character discovering a hidden door"';
     default:
-      return 'What would you like the AI to help you with?';
+      return 'What would you like me to help you write?';
   }
 } 

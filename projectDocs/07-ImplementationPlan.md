@@ -344,7 +344,7 @@ The StoryForge application will be built using an incremental development approa
    - Implement export storage
 
 2. **Frontend Export:**
-   - Create export studio UI
+   - Create Tome Binder UI
    - Implement format selection
    - Build style customization options
    - Create preview functionality

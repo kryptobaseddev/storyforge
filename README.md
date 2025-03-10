@@ -4,16 +4,18 @@
 
 ## Overview
 
-StoryForge is a kid-friendly AI-assisted narrative development platform that helps young writers create, develop, and export stories with interactive tools and AI guidance. The platform guides users through the process of creating characters, settings, plot structures, and narrative content with age-appropriate AI assistance.
+StoryForge is a AI-assisted narrative development platform that helps writers create, develop, and export stories with interactive tools and AI guidance. The platform guides users through the process of creating characters, settings, objects, plot structures, and narrative content with AI assistance provided by the Story Oracle. The Story Oracle is the central AI that provides guidance and suggestions throughout the process. It is a multi-modal AI that can provide text, images, and context-aware guidance.
 
 ## Features
 
+- **Story Wizard**: Create and develop your story with AI-assisted suggestions
 - **Character Workshop**: Create and develop characters with AI-assisted suggestions
-- **Settings Workshop**: Build detailed settings and environments for your story
+- **Realm Crafter**: Build detailed settings and environments for your story
+- **Artifact Vault**: Create and develop objects with AI-assisted suggestions
 - **Plot Architect**: Design and structure your story's plot with visual tools
-- **Chapter Forge**: Write and organize your story with contextual assistance
-- **AI Story Coach**: Get helpful suggestions and guidance throughout the process
-- **Export Studio**: Generate your story in various formats for sharing and reading
+- **Chapter Scribe**: Write and organize your story with contextual assistance
+- **Story Oracle**: Get helpful suggestions and guidance throughout the process
+- **Tome Binder**: Generate your story in various formats for sharing and reading
 
 ## Tech Stack
 

@@ -18,7 +18,7 @@ export interface IChapter extends Document {
   wordCount: number;
   characters: mongoose.Types.ObjectId[];
   settings: mongoose.Types.ObjectId[];
-  plotlines: mongoose.Types.ObjectId[];
+  plots: mongoose.Types.ObjectId[];
   objects: mongoose.Types.ObjectId[];
   notes?: string;
   aiGenerated: {
@@ -85,9 +85,9 @@ const ChapterSchema: Schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Setting'
   }],
-  plotlines: [{
+  plots: [{
     type: Schema.Types.ObjectId,
-    ref: 'Plotline'
+    ref: 'Plot'
   }],
   objects: [{
     type: Schema.Types.ObjectId,
