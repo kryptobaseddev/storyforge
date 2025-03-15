@@ -6,6 +6,16 @@
  */
 
 import mongoose, { Schema, Document } from 'mongoose';
+import { 
+  CHARACTER_ROLES,
+  RELATIONSHIP_TYPES, 
+  RELATIONSHIP_FAMILIES, 
+  RELATIONSHIP_STATUSES,
+  CharacterRole,
+  RelationshipType,
+  RelationshipFamily,
+  RelationshipStatus
+} from '../types/character.types';
 
 // Interface for Character document
 export interface ICharacter extends Document {
@@ -13,7 +23,7 @@ export interface ICharacter extends Document {
   name: string;
   shortDescription: string;
   detailedBackground: string;
-  role: string;
+  role: CharacterRole;
   attributes: {
     physical: {
       age: number;
@@ -42,7 +52,9 @@ export interface ICharacter extends Document {
   };
   relationships: Array<{
     characterId: mongoose.Types.ObjectId;
-    relationshipType: string;
+    relationshipType: RelationshipType;
+    relationshipFamily: RelationshipFamily;
+    relationshipStatus: RelationshipStatus;
     notes: string;
   }>;
   plotInvolvement: mongoose.Types.ObjectId[];
@@ -76,7 +88,7 @@ const CharacterSchema: Schema = new Schema({
   role: {
     type: String,
     required: true,
-    enum: ['Protagonist', 'Antagonist', 'Supporting', 'Minor']
+    enum: CHARACTER_ROLES
   },
   attributes: {
     physical: {
@@ -158,7 +170,15 @@ const CharacterSchema: Schema = new Schema({
     },
     relationshipType: {
       type: String,
-      enum: ['Friend', 'Enemy', 'Family', 'Romantic', 'Mentor', 'Colleague', 'Other']
+      enum: RELATIONSHIP_TYPES
+    },
+    relationshipFamily: {
+      type: String,
+      enum: RELATIONSHIP_FAMILIES
+    },
+    relationshipStatus: {
+      type: String,
+      enum: RELATIONSHIP_STATUSES
     },
     notes: {
       type: String,

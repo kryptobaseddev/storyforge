@@ -6,7 +6,7 @@
  * to stay within token limits.
  */
 
-import { AITaskType } from '../types';
+import { AITaskType } from '../../types/ai.types';
 
 // Project context type definition
 export interface ProjectContext {

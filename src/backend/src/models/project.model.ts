@@ -6,25 +6,24 @@
  */
 
 import mongoose, { Schema, Document } from 'mongoose';
-
-// Define type literals to match the Zod schema
-export type GenreType = 'fantasy' | 'science fiction' | 'mystery' | 
-                      'adventure' | 'historical fiction' | 'realistic fiction' | 
-                      'horror' | 'comedy' | 'drama' | 'fairy tale' | 'fable' | 'superhero';
-
-export type TargetAudienceType = 'children' | 'middle grade' | 'young adult' | 'adult';
-
-export type NarrativeType = 'Short Story' | 'Novel' | 'Screenplay' | 'Comic' | 'Poem';
-
-export type ToneType = 'Serious' | 'Humorous' | 'Educational' | 'Dramatic' | 'Neutral' | 'Uplifting';
-
-export type StyleType = 'Descriptive' | 'Dialogue-heavy' | 'Action-oriented' | 'Poetic' | 'Neutral';
-
-export type StatusType = 'Draft' | 'In Progress' | 'Completed' | 'Archived';
-
-export type TargetLengthType = 'Words' | 'Pages' | 'Chapters';
-
-export type CollaboratorRoleType = 'Editor' | 'Viewer' | 'Contributor';
+import {
+  PROJECT_GENRES,
+  TARGET_AUDIENCES,
+  NARRATIVE_TYPES,
+  TONES,
+  STYLES,
+  PROJECT_STATUSES,
+  TARGET_LENGTH_TYPES,
+  COLLABORATOR_ROLES,
+  GenreType,
+  TargetAudienceType,
+  NarrativeType,
+  ToneType,
+  StyleType,
+  StatusType,
+  TargetLengthType,
+  CollaboratorRoleType
+} from '../types/project.types';
 
 // Interface for Project document
 export interface IProject extends Document {
@@ -75,50 +74,37 @@ const ProjectSchema: Schema = new Schema({
   genre: {
     type: String,
     required: true,
-    enum: [
-      'fantasy', 
-      'science fiction', 
-      'mystery', 
-      'adventure', 
-      'historical fiction',
-      'realistic fiction',
-      'horror',
-      'comedy',
-      'drama',
-      'fairy tale',
-      'fable',
-      'superhero'
-    ]
+    enum: PROJECT_GENRES
   },
   targetAudience: {
     type: String,
     required: true,
-    enum: ['children', 'middle grade', 'young adult', 'adult']
+    enum: TARGET_AUDIENCES
   },
   narrativeType: {
     type: String,
     required: true,
-    enum: ['Short Story', 'Novel', 'Screenplay', 'Comic', 'Poem']
+    enum: NARRATIVE_TYPES
   },
   status: {
     type: String,
     default: 'Draft',
-    enum: ['Draft', 'In Progress', 'Completed', 'Archived']
+    enum: PROJECT_STATUSES
   },
   tone: {
     type: String,
     default: 'Neutral',
-    enum: ['Serious', 'Humorous', 'Educational', 'Dramatic', 'Neutral', 'Uplifting']
+    enum: TONES
   },
   style: {
     type: String,
     default: 'Neutral',
-    enum: ['Descriptive', 'Dialogue-heavy', 'Action-oriented', 'Poetic', 'Neutral']
+    enum: STYLES
   },
   targetLength: {
     type: {
       type: String,
-      enum: ['Words', 'Pages', 'Chapters'],
+      enum: TARGET_LENGTH_TYPES,
       default: 'Words'
     },
     value: {
@@ -133,7 +119,7 @@ const ProjectSchema: Schema = new Schema({
     },
     role: {
       type: String,
-      enum: ['Editor', 'Viewer', 'Contributor'],
+      enum: COLLABORATOR_ROLES,
       default: 'Viewer'
     }
   }],

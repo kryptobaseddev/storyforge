@@ -6,12 +6,12 @@
  */
 
 import mongoose, { Schema, Document } from 'mongoose';
-
+import { EXPORT_FORMATS, EXPORT_STATUSES, ExportFormat } from '../types/export.types';
 // Interface for Export document
 export interface IExport extends Document {
   projectId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
-  format: string;
+  format: ExportFormat;
   name: string;
   description: string;
   status: string;
@@ -52,7 +52,7 @@ const ExportSchema: Schema = new Schema({
     type: String,
     required: [true, 'Export format is required'],
     enum: {
-      values: ['PDF', 'EPUB', 'DOCX', 'Markdown', 'HTML'],
+      values: EXPORT_FORMATS,
       message: 'Export format must be PDF, EPUB, DOCX, Markdown, or HTML'
     }
   },
@@ -72,7 +72,7 @@ const ExportSchema: Schema = new Schema({
     type: String,
     required: [true, 'Export status is required'],
     enum: {
-      values: ['Pending', 'Processing', 'Completed', 'Failed'],
+      values: EXPORT_STATUSES,
       message: 'Export status must be Pending, Processing, Completed, or Failed'
     },
     default: 'Pending'

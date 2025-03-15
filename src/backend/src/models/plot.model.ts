@@ -6,22 +6,7 @@
  */
 
 import mongoose, { Schema, Document } from 'mongoose';
-
-// Element type
-export type PlotElementType = 'Setup' | 'Inciting Incident' | 'Rising Action' | 
-                           'Midpoint' | 'Complications' | 'Crisis' | 
-                           'Climax' | 'Resolution' | 'Custom';
-
-// Plot type
-export type PlotType = 'Main Plot' | 'Subplot' | 'Character Arc';
-
-// Structure type
-export type StructureType = 'Three-Act' | 'Hero\'s Journey' | 'Save the Cat' | 
-                          'Seven-Point' | 'Freytag\'s Pyramid' | 
-                          'Fichtean Curve' | 'Custom';
-
-// Status type
-export type StatusType = 'Planned' | 'In Progress' | 'Completed' | 'Abandoned';
+import { PLOT_ELEMENT_TYPES, PLOT_TYPES, STRUCTURE_TYPES, PLOT_STATUSES, PlotElementType, PlotType, StructureType, PlotStatusType } from '../types/plot.types';
 
 // Element interface
 export interface PlotElement {
@@ -42,7 +27,7 @@ export interface IPlot extends Document {
   type: PlotType;
   structure: StructureType;
   importance: number;
-  status: StatusType;
+  status: PlotStatusType;
   elements: PlotElement[];
   relatedPlots: mongoose.Types.ObjectId[];
   notes?: string;
@@ -72,22 +57,14 @@ const PlotSchema: Schema = new Schema({
     type: String,
     required: [true, 'Plot type is required'],
     enum: {
-      values: ['Main Plot', 'Subplot', 'Character Arc'],
+      values: PLOT_TYPES,
       message: 'Type must be Main Plot, Subplot, or Character Arc'
     }
   },
   structure: {
     type: String,
     enum: {
-      values: [
-        'Three-Act',
-        'Hero\'s Journey',
-        'Save the Cat',
-        'Seven-Point',
-        'Freytag\'s Pyramid',
-        'Fichtean Curve',
-        'Custom'
-      ],
+      values: STRUCTURE_TYPES,
       message: 'Structure must be a valid story structure'
     },
     default: 'Three-Act'
@@ -101,7 +78,7 @@ const PlotSchema: Schema = new Schema({
   status: {
     type: String,
     enum: {
-      values: ['Planned', 'In Progress', 'Completed', 'Abandoned'],
+      values: PLOT_STATUSES,
       message: 'Status must be Planned, In Progress, Completed, or Abandoned'
     },
     default: 'Planned'
@@ -110,7 +87,7 @@ const PlotSchema: Schema = new Schema({
     type: {
       type: String,
       enum: {
-        values: ['Setup', 'Inciting Incident', 'Rising Action', 'Midpoint', 'Complications', 'Crisis', 'Climax', 'Resolution', 'Custom'],
+        values: PLOT_ELEMENT_TYPES,
         message: 'Element type must be valid'
       },
       required: [true, 'Element type is required']

@@ -6,6 +6,13 @@
 
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
+import {
+  PLOT_ELEMENT_TYPES,
+  PLOT_TYPES,
+  STRUCTURE_TYPES,
+  PLOT_STATUSES,
+  PlotElement
+} from '../types/plot.types';
 
 // Helper for ObjectId validation
 const objectIdSchema = z.string().refine(
@@ -21,43 +28,16 @@ const objectIdSchema = z.string().refine(
 );
 
 // Plot element type enum
-const plotElementTypeEnum = z.enum([
-  'Setup',
-  'Inciting Incident',
-  'Rising Action',
-  'Midpoint',
-  'Complications',
-  'Crisis',
-  'Climax',
-  'Resolution',
-  'Custom'
-]);
+const plotElementTypeEnum = z.enum(PLOT_ELEMENT_TYPES);
 
 // Plot type enum
-const plotTypeEnum = z.enum([
-  'Main Plot',
-  'Subplot',
-  'Character Arc'
-]);
+const plotTypeEnum = z.enum(PLOT_TYPES);
 
 // Structure type enum
-const structureTypeEnum = z.enum([
-  'Three-Act',
-  'Hero\'s Journey',
-  'Save the Cat',
-  'Seven-Point',
-  'Freytag\'s Pyramid',
-  'Fichtean Curve',
-  'Custom'
-]);
+const structureTypeEnum = z.enum(STRUCTURE_TYPES);
 
 // Status enum
-const statusEnum = z.enum([
-  'Planned',
-  'In Progress',
-  'Completed',
-  'Abandoned'
-]);
+const statusEnum = z.enum(PLOT_STATUSES);
 
 // Schema for creating a plot element
 export const createPlotElementSchema = z.object({
@@ -112,4 +92,12 @@ export const plotSchema = z.object({
 });
 
 // Schema for a list of plots
-export const plotListSchema = z.array(plotSchema); 
+export const plotListSchema = z.array(plotSchema);
+
+// Types exported for use in other files
+export type CreatePlotElementInput = z.infer<typeof createPlotElementSchema>;
+export type UpdatePlotElementInput = z.infer<typeof updatePlotElementSchema>;
+export type PlotElementResponse = z.infer<typeof plotElementSchema>;
+export type CreatePlotInput = z.infer<typeof createPlotSchema>;
+export type UpdatePlotInput = z.infer<typeof updatePlotSchema>;
+export type PlotResponse = z.infer<typeof plotSchema>; 

@@ -6,6 +6,14 @@
 
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
+import { 
+  RELATIONSHIP_TYPES, 
+  RELATIONSHIP_FAMILIES, 
+  RELATIONSHIP_STATUSES,
+  RelationshipType,
+  RelationshipFamily,
+  RelationshipStatus 
+} from '../types/character.types';
 
 // Helper function to validate ObjectId strings
 const objectIdSchema = z.string().refine(
@@ -71,15 +79,9 @@ export const attributesSchema = z.object({
  */
 export const relationshipSchema = z.object({
   characterId: objectIdSchema,
-  relationshipType: z.enum([
-    'Friend', 
-    'Enemy', 
-    'Family', 
-    'Romantic', 
-    'Mentor', 
-    'Colleague', 
-    'Other'
-  ]),
+  relationshipType: z.enum(RELATIONSHIP_TYPES),
+  relationshipFamily: z.enum(RELATIONSHIP_FAMILIES),
+  relationshipStatus: z.enum(RELATIONSHIP_STATUSES),
   notes: z.string().optional().default('')
 });
 

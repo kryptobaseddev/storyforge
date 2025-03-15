@@ -6,13 +6,14 @@
  */
 
 import mongoose, { Schema, Document } from 'mongoose';
+import { SETTING_TYPES, SettingType } from '../types/setting.types';
 
 // Interface for Setting document
 export interface ISetting extends Document {
   projectId: mongoose.Types.ObjectId;
   name: string;
   description: string;
-  type: string;
+  type: SettingType;
   details: {
     geography: string;
     climate: string;
@@ -58,7 +59,7 @@ const SettingSchema: Schema = new Schema({
     type: String,
     required: [true, 'Setting type is required'],
     enum: {
-      values: ['Location', 'World', 'Environment', 'Building', 'Region', 'Planet'],
+      values: SETTING_TYPES,
       message: 'Type must be a valid setting type'
     }
   },

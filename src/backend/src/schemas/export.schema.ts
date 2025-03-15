@@ -6,6 +6,12 @@
 
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
+import {
+  EXPORT_FORMATS,
+  EXPORT_STATUSES,
+  PAGE_SIZES,
+  ExportConfig
+} from '../types/export.types';
 
 // Helper function to validate ObjectId
 const objectIdSchema = z.string().refine(
@@ -23,30 +29,13 @@ const objectIdSchema = z.string().refine(
 );
 
 // Export format enum
-export const exportFormatEnum = z.enum([
-  'PDF',
-  'EPUB',
-  'DOCX',
-  'Markdown',
-  'HTML'
-]);
+export const exportFormatEnum = z.enum(EXPORT_FORMATS);
 
 // Export status enum
-export const exportStatusEnum = z.enum([
-  'Pending',
-  'Processing',
-  'Completed',
-  'Failed'
-]);
+export const exportStatusEnum = z.enum(EXPORT_STATUSES);
 
 // Page size options
-export const pageSizeEnum = z.enum([
-  'A4',
-  'A5',
-  'Letter',
-  'Legal',
-  'Custom'
-]);
+export const pageSizeEnum = z.enum(PAGE_SIZES);
 
 // Configuration schema
 export const exportConfigSchema = z.object({
@@ -106,10 +95,6 @@ export const projectIdSchema = z.object({
 });
 
 // Type exports for use in router
-export type ExportFormat = z.infer<typeof exportFormatEnum>;
-export type ExportStatus = z.infer<typeof exportStatusEnum>;
-export type PageSize = z.infer<typeof pageSizeEnum>;
-export type ExportConfig = z.infer<typeof exportConfigSchema>;
 export type CreateExportInput = z.infer<typeof createExportSchema>;
 export type UpdateExportInput = z.infer<typeof updateExportSchema>;
 export type Export = z.infer<typeof exportSchema>;

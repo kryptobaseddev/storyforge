@@ -6,14 +6,15 @@
  */
 
 import mongoose, { Schema, Document } from 'mongoose';
-
+import { OBJECT_TYPES, ObjectType, CONNECTION_TYPES, ConnectionType } from '../types/object.types';
 // Interface for Object document
 export interface IObject extends Document {
   projectId: mongoose.Types.ObjectId;
   name: string;
   description: string;
-  type: string;
+  type: ObjectType;
   significance: string;
+  culturalSignificance?: string;
   properties: {
     physical: {
       size: string;
@@ -24,11 +25,26 @@ export interface IObject extends Document {
       powers: string[];
       limitations: string[];
       origin: string;
+      energySource?: string;
+      activationMethod?: string;
+      sideEffects?: string[];
+      rarity?: string;
     };
   };
   history: string;
+  timelineEvents: Array<{
+    date: string;
+    title: string;
+    description: string;
+    importance: number;
+  }>;
   location?: mongoose.Types.ObjectId;
   owner?: mongoose.Types.ObjectId;
+  connections: Array<{
+    type: ConnectionType;
+    entityId: mongoose.Types.ObjectId;
+    description: string;
+  }>;
   imageUrl?: string;
   notes?: string;
   createdAt: Date;
@@ -54,9 +70,13 @@ const ObjectSchema: Schema = new Schema({
   type: {
     type: String,
     required: true,
-    enum: ['Item', 'Artifact', 'Vehicle', 'Weapon', 'Tool', 'Clothing', 'Other']
+    enum: OBJECT_TYPES
   },
   significance: {
+    type: String,
+    default: ''
+  },
+  culturalSignificance: {
     type: String,
     default: ''
   },
@@ -85,6 +105,21 @@ const ObjectSchema: Schema = new Schema({
       origin: {
         type: String,
         default: ''
+      },
+      energySource: {
+        type: String,
+        default: ''
+      },
+      activationMethod: {
+        type: String,
+        default: ''
+      },
+      sideEffects: [{
+        type: String
+      }],
+      rarity: {
+        type: String,
+        default: ''
       }
     }
   },
@@ -92,6 +127,26 @@ const ObjectSchema: Schema = new Schema({
     type: String,
     default: ''
   },
+  timelineEvents: [{
+    date: {
+      type: String,
+      required: true
+    },
+    title: {
+      type: String,
+      required: true
+    },
+    description: {
+      type: String,
+      required: true
+    },
+    importance: {
+      type: Number,
+      min: 1,
+      max: 10,
+      default: 5
+    }
+  }],
   location: {
     type: Schema.Types.ObjectId,
     ref: 'Setting'
@@ -100,6 +155,22 @@ const ObjectSchema: Schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Character'
   },
+  connections: [{
+    type: {
+      type: String,
+      enum: CONNECTION_TYPES,
+      required: true
+    },
+    entityId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      refPath: 'connections.type'
+    },
+    description: {
+      type: String,
+      default: ''
+    }
+  }],
   imageUrl: {
     type: String
   },
@@ -111,7 +182,14 @@ const ObjectSchema: Schema = new Schema({
 });
 
 // Add text index for search
-ObjectSchema.index({ name: 'text', description: 'text', history: 'text' });
+ObjectSchema.index({ 
+  name: 'text', 
+  description: 'text', 
+  history: 'text',
+  'timelineEvents.title': 'text',
+  'timelineEvents.description': 'text',
+  culturalSignificance: 'text'
+});
 
 // Create and export the model
 export default mongoose.model<IObject>('Object', ObjectSchema); 

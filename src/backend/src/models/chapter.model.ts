@@ -6,7 +6,7 @@
  */
 
 import mongoose, { Schema, Document } from 'mongoose';
-
+import { CHAPTER_STATUSES, ChapterStatus } from '../types/chapter.types';
 // Interface for Chapter document
 export interface IChapter extends Document {
   projectId: mongoose.Types.ObjectId;
@@ -14,7 +14,7 @@ export interface IChapter extends Document {
   position: number;
   synopsis: string;
   content: string;
-  status: string;
+  status: ChapterStatus;
   wordCount: number;
   characters: mongoose.Types.ObjectId[];
   settings: mongoose.Types.ObjectId[];
@@ -68,7 +68,7 @@ const ChapterSchema: Schema = new Schema({
   status: {
     type: String,
     enum: {
-      values: ['Draft', 'Revised', 'Final', 'Needs Review'],
+      values: CHAPTER_STATUSES,
       message: 'Status must be Draft, Revised, Final, or Needs Review'
     },
     default: 'Draft'

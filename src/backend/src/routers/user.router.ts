@@ -17,7 +17,7 @@ import {
 } from '../schemas/user.schema';
 import { Document } from 'mongoose';
 import { z } from 'zod';
-
+import { UserReadingLevel, UserTheme } from '../types/user.types';
 // Helper function to convert user document to response shape
 const formatUserResponse = (user: IUser & Document) => {
   return {
@@ -29,9 +29,9 @@ const formatUserResponse = (user: IUser & Document) => {
     age: user.age || undefined,
     avatar: user.avatar || undefined,
     preferences: {
-      theme: user.preferences.theme as "light" | "dark" | "system",
+      theme: user.preferences.theme as UserTheme,
       fontSize: user.preferences.fontSize,
-      readingLevel: user.preferences.readingLevel as "elementary" | "middle grade" | "young adult" | "adult",
+      readingLevel: user.preferences.readingLevel as UserReadingLevel,
       notificationSettings: user.preferences.notificationSettings
     },
     createdAt: user.createdAt,
@@ -196,9 +196,9 @@ export const userRouter = router({
       }
 
       const preferences: UserPreferences = {
-        theme: user.preferences.theme as "light" | "dark" | "system",
+        theme: user.preferences.theme as UserTheme,
         fontSize: user.preferences.fontSize,
-        readingLevel: user.preferences.readingLevel as "elementary" | "middle grade" | "young adult" | "adult",
+        readingLevel: user.preferences.readingLevel as UserReadingLevel,
         notificationSettings: user.preferences.notificationSettings
       };
 
@@ -245,9 +245,9 @@ export const userRouter = router({
       await user.save();
 
       const preferences: UserPreferences = {
-        theme: user.preferences.theme as "light" | "dark" | "system",
+        theme: user.preferences.theme as UserTheme,
         fontSize: user.preferences.fontSize,
-        readingLevel: user.preferences.readingLevel as "elementary" | "middle grade" | "young adult" | "adult",
+        readingLevel: user.preferences.readingLevel as UserReadingLevel,
         notificationSettings: user.preferences.notificationSettings
       };
 

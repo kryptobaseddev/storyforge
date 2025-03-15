@@ -17,6 +17,11 @@ import {
   addRelationshipSchema,
   relationshipListSchema
 } from '../schemas/character.schema';
+import { 
+  RELATIONSHIP_TYPES, 
+  RELATIONSHIP_FAMILIES, 
+  RELATIONSHIP_STATUSES 
+} from '../types/character.types';
 import { ObjectId } from 'mongodb';
 import mongoose from 'mongoose';
 
@@ -55,9 +60,6 @@ const characterToResponse = (character: ICharacter) => {
   const id = character._id ? character._id.toString() : '';
   const projectId = character.projectId ? character.projectId.toString() : '';
   
-  // Valid relationship types from the schema
-  const validRelationshipTypes = ['Friend', 'Enemy', 'Family', 'Romantic', 'Mentor', 'Colleague', 'Other'];
-  
   return {
     id,
     projectId,
@@ -69,9 +71,15 @@ const characterToResponse = (character: ICharacter) => {
     relationships: character.relationships.map((rel: any) => ({
       characterId: rel.characterId.toString(),
       // Ensure relationshipType is one of the valid types, default to 'Other' if not
-      relationshipType: validRelationshipTypes.includes(rel.relationshipType) 
+      relationshipType: RELATIONSHIP_TYPES.includes(rel.relationshipType) 
         ? rel.relationshipType 
         : 'Other',
+      relationshipFamily: RELATIONSHIP_FAMILIES.includes(rel.relationshipFamily)
+        ? rel.relationshipFamily
+        : 'Other',
+      relationshipStatus: RELATIONSHIP_STATUSES.includes(rel.relationshipStatus)
+        ? rel.relationshipStatus
+        : 'Neutral',
       notes: rel.notes || ''
     })),
     plotInvolvement: character.plotInvolvement.map((id: any) => id.toString()),
@@ -396,6 +404,8 @@ export const characterRouter = router({
         character.relationships.push({
           characterId: new ObjectId(relationship.characterId),
           relationshipType: relationship.relationshipType,
+          relationshipFamily: relationship.relationshipFamily,
+          relationshipStatus: relationship.relationshipStatus,
           notes: relationship.notes || ''
         });
         
@@ -404,6 +414,8 @@ export const characterRouter = router({
         return character.relationships.map((rel: any) => ({
           characterId: rel.characterId.toString(),
           relationshipType: rel.relationshipType,
+          relationshipFamily: rel.relationshipFamily,
+          relationshipStatus: rel.relationshipStatus,
           notes: rel.notes || ''
         }));
       } catch (error) {
@@ -428,20 +440,14 @@ export const characterRouter = router({
       characterId: z.string(),
       relatedCharacterId: z.string(),
       data: z.object({
-        relationshipType: z.enum([
-          'Friend', 
-          'Enemy', 
-          'Family', 
-          'Romantic', 
-          'Mentor', 
-          'Colleague', 
-          'Other'
-        ]).optional(),
+        relationshipType: z.enum(RELATIONSHIP_TYPES).optional(),
+        relationshipFamily: z.enum(RELATIONSHIP_FAMILIES).optional(),
+        relationshipStatus: z.enum(RELATIONSHIP_STATUSES).optional(),
         notes: z.string().optional()
       })
     }))
     .output(relationshipListSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => { 
       try {
         const userId = ctx.user.id;
         const { projectId, characterId, relatedCharacterId, data } = input;
@@ -491,6 +497,12 @@ export const characterRouter = router({
         if (data.relationshipType) {
           relationship.relationshipType = data.relationshipType;
         }
+        if (data.relationshipFamily) {
+          relationship.relationshipFamily = data.relationshipFamily;
+        }
+        if (data.relationshipStatus) {
+          relationship.relationshipStatus = data.relationshipStatus;
+        }
         if (data.notes !== undefined) {
           relationship.notes = data.notes;
         }
@@ -500,6 +512,8 @@ export const characterRouter = router({
         return character.relationships.map((rel: any) => ({
           characterId: rel.characterId.toString(),
           relationshipType: rel.relationshipType,
+          relationshipFamily: rel.relationshipFamily,
+          relationshipStatus: rel.relationshipStatus,
           notes: rel.notes || ''
         }));
       } catch (error) {
@@ -578,6 +592,8 @@ export const characterRouter = router({
         return character.relationships.map((rel: any) => ({
           characterId: rel.characterId.toString(),
           relationshipType: rel.relationshipType,
+          relationshipFamily: rel.relationshipFamily,
+          relationshipStatus: rel.relationshipStatus,
           notes: rel.notes || ''
         }));
       } catch (error) {

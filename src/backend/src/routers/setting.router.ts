@@ -17,7 +17,7 @@ import {
   uploadMapSchema
 } from '../schemas/setting.schema';
 import { ObjectId } from 'mongodb';
-
+import { SETTING_TYPES, SettingType } from '../types/setting.types';
 /**
  * Helper function to check if user has access to the project
  */
@@ -59,7 +59,7 @@ const settingToResponse = (setting: ISetting) => {
     name: setting.name,
     description: setting.description || '',
     // Cast type to the expected union type, assuming the DB value is valid
-    type: setting.type as "City" | "Country" | "Planet" | "Building" | "Landscape" | "Region" | "World" | "Room" | "Other",
+    type: setting.type as SettingType,
     details: setting.details || {},
     map: setting.map || { imageUrl: '', coordinates: {} },
     relatedSettings: (setting.relatedSettings || []).map((id: any) => id.toString()),

@@ -2,10 +2,23 @@
  * AI Schemas
  * 
  * This file contains Zod schemas for validating AI-related data.
+ * These schemas use the type definitions from ai.types.ts.
  */
 
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
+import {
+  AI_TASK_TYPES,
+  CONTENT_FILTER_LEVELS,
+  AI_FOCUS_AREAS,
+  AI_TARGET_LENGTH_TYPES,
+  AI_IMAGE_SIZES,
+  AIGenerationModel,
+  TokenUsage,
+  AIGenerationMetadata
+} from '../types/ai.types';
+import { PROJECT_GENRES, TARGET_AUDIENCES } from '../types/project.types';
+import { CHARACTER_ROLES } from '../types/character.types';
 
 // Helper function to validate ObjectId
 const objectIdSchema = z.string().refine(
@@ -22,42 +35,23 @@ const objectIdSchema = z.string().refine(
   }
 );
 
+// Schema for AI-generated content tracking
+export const aiGeneratedSchema = z.object({
+  isGenerated: z.boolean().default(false),
+  generatedTimestamp: z.date().optional(),
+  prompt: z.string().optional(),
+  model: z.string().optional()
+});
+
 // Enums
-export const aiTaskEnum = z.enum([
-  'character',
-  'plot',
-  'setting',
-  'chapter',
-  'editorial'
-]);
-
-export const genreEnum = z.enum([
-  'fantasy',
-  'science fiction',
-  'mystery',
-  'adventure',
-  'historical fiction',
-  'realistic fiction',
-  'horror',
-  'comedy',
-  'drama',
-  'fairy tale',
-  'fable',
-  'superhero'
-]);
-
-export const audienceEnum = z.enum([
-  'children',
-  'middle grade',
-  'young adult',
-  'adult'
-]);
-
-export const contentFilterEnum = z.enum([
-  'strict',
-  'standard',
-  'relaxed'
-]);
+export const aiTaskEnum = z.enum(AI_TASK_TYPES);
+export const genreEnum = z.enum(PROJECT_GENRES);
+export const audienceEnum = z.enum(TARGET_AUDIENCES);
+export const contentFilterEnum = z.enum(CONTENT_FILTER_LEVELS);
+export const aiFocusAreaEnum = z.enum(AI_FOCUS_AREAS);
+export const aiTargetLengthEnum = z.enum(AI_TARGET_LENGTH_TYPES);
+export const aiImageSizeEnum = z.enum(AI_IMAGE_SIZES);
+export const narrativeImportanceEnum = z.enum(CHARACTER_ROLES);
 
 // Response format options
 export const responseFormatSchema = z.object({
@@ -86,7 +80,7 @@ export const characterGenerationSchema = aiGenerationBaseSchema.extend({
   age_range: z.string().optional(),
   key_traits: z.array(z.string()).optional(),
   related_characters: z.array(z.string()).optional(),
-  narrative_importance: z.enum(['protagonist', 'antagonist', 'supporting', 'minor']).optional()
+  narrative_importance: narrativeImportanceEnum.optional()
 });
 
 // Plot generation request
@@ -96,7 +90,7 @@ export const plotGenerationSchema = aiGenerationBaseSchema.extend({
   characters: z.array(z.string()).optional(),
   setting: z.string().optional(),
   conflict_type: z.string().optional(),
-  desired_length: z.enum(['short', 'medium', 'long']).optional()
+  desired_length: aiTargetLengthEnum.optional()
 });
 
 // Setting generation request
@@ -123,9 +117,7 @@ export const chapterGenerationSchema = aiGenerationBaseSchema.extend({
 export const editorialFeedbackSchema = aiGenerationBaseSchema.extend({
   task: z.literal('editorial'),
   content: z.string(),
-  focus_areas: z.array(
-    z.enum(['pacing', 'character', 'plot', 'dialogue', 'description'])
-  ).optional()
+  focus_areas: z.array(aiFocusAreaEnum).optional()
 });
 
 // Union of all AI generation requests
@@ -140,7 +132,7 @@ export const generateContentSchema = z.discriminatedUnion('task', [
 // Image generation request
 export const generateImageSchema = z.object({
   prompt: z.string().min(1).max(1000),
-  size: z.enum(['1024x1024', '1024x1792', '1792x1024']).optional().default('1024x1024'),
+  size: aiImageSizeEnum.optional().default('1024x1024'),
   project_id: objectIdSchema,
   user_id: objectIdSchema
 });
@@ -150,15 +142,18 @@ export const saveGenerationSchema = z.object({
   generation_id: objectIdSchema
 });
 
+// AI generation response token usage
+export const tokenUsageSchema = z.object({
+  prompt: z.number(),
+  completion: z.number(),
+  total: z.number()
+});
+
 // AI generation response metadata
 export const aiMetadataSchema = z.object({
   model: z.string(),
   timestamp: z.date().or(z.string()),
-  token_usage: z.object({
-    prompt: z.number(),
-    completion: z.number(),
-    total: z.number()
-  })
+  token_usage: tokenUsageSchema
 });
 
 // Full AI generation model with response
@@ -178,14 +173,8 @@ export const aiGenerationSchema = z.object({
 // List of AI generations
 export const aiGenerationListSchema = z.array(aiGenerationSchema);
 
-// Type exports for use in router
-export type AITask = z.infer<typeof aiTaskEnum>;
-export type Genre = z.infer<typeof genreEnum>;
-export type Audience = z.infer<typeof audienceEnum>;
-export type ContentFilter = z.infer<typeof contentFilterEnum>;
-export type ResponseFormat = z.infer<typeof responseFormatSchema>;
+// Export types that are used elsewhere in the app
 export type GenerateContentInput = z.infer<typeof generateContentSchema>;
 export type GenerateImageInput = z.infer<typeof generateImageSchema>;
 export type SaveGenerationInput = z.infer<typeof saveGenerationSchema>;
-export type AIGeneration = z.infer<typeof aiGenerationSchema>;
-export type AIGenerationList = z.infer<typeof aiGenerationListSchema>; 
+export type AIGeneration = z.infer<typeof aiGenerationSchema>; 

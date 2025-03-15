@@ -18,7 +18,7 @@ import {
 import Plot, { IPlot } from '../models/plot.model';
 import ProjectModel from '../models/project.model';
 import { ObjectId } from 'mongodb';
-
+import { PlotElementType, PlotType, StructureType, PlotStatusType } from '../types/plot.types';
 /**
  * Helper function to check if user has access to the project
  */
@@ -58,13 +58,13 @@ const plotToResponse = (plot: IPlot) => {
     projectId: plot.projectId.toString(),
     title: plot.title,
     description: plot.description,
-    type: plot.type as "Main Plot" | "Subplot" | "Character Arc",
-    structure: plot.structure as "Three-Act" | "Hero's Journey" | "Save the Cat" | "Seven-Point" | "Freytag's Pyramid" | "Fichtean Curve" | "Custom",
+    type: plot.type as PlotType,
+    structure: plot.structure as StructureType,
     importance: plot.importance,
-    status: plot.status as "Planned" | "In Progress" | "Completed" | "Abandoned",
+    status: plot.status as PlotStatusType,
     elements: plot.elements.map(element => ({
       id: element._id?.toString() || '',
-      type: element.type as "Setup" | "Inciting Incident" | "Rising Action" | "Midpoint" | "Complications" | "Crisis" | "Climax" | "Resolution" | "Custom",
+      type: element.type as PlotElementType,
       description: element.description,
       characters: element.characters?.map(id => id.toString()) || [],
       settings: element.settings?.map(id => id.toString()) || [],

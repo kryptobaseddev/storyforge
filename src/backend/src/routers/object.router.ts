@@ -13,8 +13,11 @@ import {
   updateObjectSchema, 
   objectSchema, 
   objectListSchema,
-  ObjectType
+  timelineEventSchema,
+  connectionSchema,
+  connectionTypeEnum
 } from '../schemas/object.schema';
+import { ObjectType, PhysicalProperties, MagicalProperties, ObjectProperties, ConnectionType } from '../types/object.types';
 
 // Helper function to transform MongoDB document to match the schema
 const objectToResponse = (object: any) => {
@@ -25,6 +28,7 @@ const objectToResponse = (object: any) => {
     description: object.description,
     type: object.type as ObjectType,
     significance: object.significance || '',
+    culturalSignificance: object.culturalSignificance || '',
     properties: {
       physical: {
         size: object.properties?.physical?.size || '',
@@ -34,12 +38,27 @@ const objectToResponse = (object: any) => {
       magical: object.properties?.magical ? {
         powers: object.properties.magical.powers || [],
         limitations: object.properties.magical.limitations || [],
-        origin: object.properties.magical.origin || ''
+        origin: object.properties.magical.origin || '',
+        energySource: object.properties.magical.energySource || '',
+        activationMethod: object.properties.magical.activationMethod || '',
+        sideEffects: object.properties.magical.sideEffects || [],
+        rarity: object.properties.magical.rarity || ''
       } : undefined
     },
     history: object.history || '',
+    timelineEvents: object.timelineEvents?.map((event: any) => ({
+      date: event.date,
+      title: event.title,
+      description: event.description,
+      importance: event.importance
+    })) || [],
     location: object.location ? object.location.toString() : undefined,
     owner: object.owner ? object.owner.toString() : undefined,
+    connections: object.connections?.map((connection: any) => ({
+      type: connection.type as ConnectionType,
+      entityId: connection.entityId.toString(),
+      description: connection.description || ''
+    })) || [],
     imageUrl: object.imageUrl,
     notes: object.notes,
     createdAt: object.createdAt instanceof Date ? object.createdAt.toISOString() : object.createdAt,
@@ -323,6 +342,228 @@ export const objectRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to search objects',
+        });
+      }
+    }),
+
+  /**
+   * Add a timeline event to an object
+   */
+  addTimelineEvent: protectedProcedure
+    .input(z.object({
+      projectId: z.string(),
+      objectId: z.string(),
+      event: timelineEventSchema
+    }))
+    .output(objectSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const { projectId, objectId, event } = input;
+        const userId = ctx.user.id;
+
+        // Find and update the object
+        const updatedObject = await ObjectModel.findOneAndUpdate(
+          { _id: objectId, projectId },
+          { $push: { timelineEvents: event } },
+          { new: true, runValidators: true }
+        ).lean();
+
+        if (!updatedObject) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Object not found',
+          });
+        }
+
+        // Transform MongoDB document to match the schema
+        return objectToResponse(updatedObject);
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        
+        console.error('Error adding timeline event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to add timeline event',
+        });
+      }
+    }),
+
+  /**
+   * Remove a timeline event from an object
+   */
+  removeTimelineEvent: protectedProcedure
+    .input(z.object({
+      projectId: z.string(),
+      objectId: z.string(),
+      eventIndex: z.number()
+    }))
+    .output(objectSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const { projectId, objectId, eventIndex } = input;
+        const userId = ctx.user.id;
+
+        // First get the object to verify the event exists
+        const object = await ObjectModel.findOne({ _id: objectId, projectId }).lean();
+        
+        if (!object) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Object not found',
+          });
+        }
+
+        if (!object.timelineEvents || eventIndex >= object.timelineEvents.length) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Timeline event not found',
+          });
+        }
+
+        // Create a new timelineEvents array without the specified event
+        const updatedTimelineEvents = [...object.timelineEvents];
+        updatedTimelineEvents.splice(eventIndex, 1);
+
+        // Update the object
+        const updatedObject = await ObjectModel.findOneAndUpdate(
+          { _id: objectId, projectId },
+          { $set: { timelineEvents: updatedTimelineEvents } },
+          { new: true, runValidators: true }
+        ).lean();
+
+        if (!updatedObject) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to remove timeline event',
+          });
+        }
+
+        // Transform MongoDB document to match the schema
+        return objectToResponse(updatedObject);
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        
+        console.error('Error removing timeline event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to remove timeline event',
+        });
+      }
+    }),
+
+  /**
+   * Add a connection to an object
+   */
+  addConnection: protectedProcedure
+    .input(z.object({
+      projectId: z.string(),
+      objectId: z.string(),
+      connection: connectionSchema
+    }))
+    .output(objectSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const { projectId, objectId, connection } = input;
+        const userId = ctx.user.id;
+
+        // Find and update the object
+        const updatedObject = await ObjectModel.findOneAndUpdate(
+          { _id: objectId, projectId },
+          { $push: { connections: connection } },
+          { new: true, runValidators: true }
+        ).lean();
+
+        if (!updatedObject) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Object not found',
+          });
+        }
+
+        // Transform MongoDB document to match the schema
+        return objectToResponse(updatedObject);
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        
+        console.error('Error adding connection:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to add connection',
+        });
+      }
+    }),
+
+  /**
+   * Remove a connection from an object
+   */
+  removeConnection: protectedProcedure
+    .input(z.object({
+      projectId: z.string(),
+      objectId: z.string(),
+      connectionId: z.string()
+    }))
+    .output(objectSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const { projectId, objectId, connectionId } = input;
+        const userId = ctx.user.id;
+
+        // Find and update the object
+        const updatedObject = await ObjectModel.findOneAndUpdate(
+          { _id: objectId, projectId },
+          { $pull: { connections: { _id: connectionId } } },
+          { new: true, runValidators: true }
+        ).lean();
+
+        if (!updatedObject) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Object not found',
+          });
+        }
+
+        // Transform MongoDB document to match the schema
+        return objectToResponse(updatedObject);
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        
+        console.error('Error removing connection:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to remove connection',
+        });
+      }
+    }),
+
+  /**
+   * Get objects by connection type
+   */
+  getByConnectionType: protectedProcedure
+    .input(z.object({
+      projectId: z.string(),
+      connectionType: connectionTypeEnum
+    }))
+    .output(objectListSchema)
+    .query(async ({ input, ctx }) => {
+      try {
+        const { projectId, connectionType } = input;
+        const userId = ctx.user.id;
+
+        // Fetch all objects with the specified connection type
+        const objects = await ObjectModel.find({
+          projectId,
+          'connections.type': connectionType
+        })
+          .sort({ name: 1 })
+          .lean();
+
+        // Transform MongoDB documents to match the schema
+        return objects.map(object => objectToResponse(object));
+      } catch (error) {
+        console.error('Error fetching objects by connection type:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch objects by connection type',
         });
       }
     })

@@ -6,6 +6,11 @@
 
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
+import {
+  SETTING_TYPES,
+  SettingDetails,
+  SettingMap
+} from '../types/setting.types';
 
 // Helper function to validate ObjectId strings
 const objectIdSchema = z.string().refine(
@@ -49,17 +54,7 @@ export const mapSchema = z.object({
 export const createSettingSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
   description: z.string().optional().default(''),
-  type: z.enum([
-    'City', 
-    'Country', 
-    'Planet', 
-    'Building', 
-    'Landscape', 
-    'Region', 
-    'World', 
-    'Room', 
-    'Other'
-  ]),
+  type: z.enum(SETTING_TYPES),
   details: settingDetailsSchema.optional().default({}),
   map: mapSchema.optional(),
   relatedSettings: z.array(objectIdSchema).optional().default([]),

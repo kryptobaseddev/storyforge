@@ -25,10 +25,6 @@ import RegisterPage from './pages/auth/register';
 import ForgotPasswordPage from './pages/auth/forgot-password';
 import ResetPasswordPage from './pages/auth/reset-password';
 
-// Import Test Page
-import TestPage from './pages/TestPage';
-
-// Import pages (we'll create these later)
 // Use lazy loading for better performance
 const Dashboard = React.lazy(() => import('./pages/dashboard/DashboardPage'));
 const Projects = React.lazy(() => import('./pages/projects/ProjectsPage'));
@@ -64,7 +60,6 @@ const App: React.FC = () => {
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
-                  <Route path="/test" element={<TestPage />} />
                   
                   {/* Protected routes */}
                   <Route element={<ProtectedRoute />}>
@@ -105,7 +100,6 @@ const App: React.FC = () => {
                           <ProjectDetail initialTab="share" />
                         </React.Suspense>
                       } />
-                      <Route path="test-inside" element={<TestPage />} />
                       
                       {/* Project routes */}
                       <Route path="project">

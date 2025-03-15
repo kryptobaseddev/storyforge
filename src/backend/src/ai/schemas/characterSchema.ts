@@ -5,6 +5,8 @@
  * used throughout the application, particularly for AI-generated character content.
  */
 
+// TODO: clean up and replace this character schema with the one in the character.schema.ts file
+
 // Base character relationship interface
 export interface CharacterRelationship {
   with: string;         // Name of the related character or "potential" for planned relationships

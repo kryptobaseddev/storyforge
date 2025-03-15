@@ -6,6 +6,8 @@
  * the data meets the application's requirements.
  */
 
+// TODO: clean up and replace any types or schemas with the ones in the character.schema.ts or character.types.ts file
+
 import { Character, CharacterExpansion } from '../schemas/characterSchema';
 
 /**

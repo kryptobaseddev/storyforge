@@ -7,7 +7,7 @@
 
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
-
+import { UserReadingLevel, UserTheme } from '../types/user.types';
 // Interface for User document
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
@@ -19,9 +19,9 @@ export interface IUser extends Document {
   age?: number;
   avatar?: string;
   preferences: {
-    theme: string;
+    theme: UserTheme;
     fontSize: number;
-    readingLevel: string;
+    readingLevel: UserReadingLevel;
     notificationSettings: Record<string, any>;
   };
   projects: mongoose.Types.ObjectId[];
@@ -72,7 +72,7 @@ const UserSchema: Schema = new Schema({
   preferences: {
     theme: {
       type: String,
-      default: 'light'
+      default: UserTheme.LIGHT
     },
     fontSize: {
       type: Number,
@@ -80,7 +80,7 @@ const UserSchema: Schema = new Schema({
     },
     readingLevel: {
       type: String,
-      default: 'middle grade'
+      default: UserReadingLevel.MIDDLE_GRADE
     },
     notificationSettings: {
       type: Object,

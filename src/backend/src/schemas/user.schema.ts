@@ -6,6 +6,7 @@
 
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
+import { UserReadingLevel, UserTheme } from '../types/user.types';
 
 // Helper function to validate ObjectId
 const objectIdSchema = z.string().refine(
@@ -24,9 +25,9 @@ const objectIdSchema = z.string().refine(
 
 // Schema for user preferences
 export const userPreferencesSchema = z.object({
-  theme: z.enum(['light', 'dark', 'system']).default('light'),
+  theme: z.nativeEnum(UserTheme).default(UserTheme.LIGHT),
   fontSize: z.number().min(8).max(32).default(16),
-  readingLevel: z.enum(['elementary', 'middle grade', 'young adult', 'adult']).default('middle grade'),
+  readingLevel: z.nativeEnum(UserReadingLevel).default(UserReadingLevel.MIDDLE_GRADE),
   notificationSettings: z.record(z.boolean()).default({
     email: true,
     app: true
@@ -51,9 +52,9 @@ export const changePasswordSchema = z.object({
 
 // Schema for updating user preferences
 export const updatePreferencesSchema = z.object({
-  theme: z.enum(['light', 'dark', 'system']).optional(),
+  theme: z.nativeEnum(UserTheme).optional(),
   fontSize: z.number().min(8).max(32).optional(),
-  readingLevel: z.enum(['elementary', 'middle grade', 'young adult', 'adult']).optional(),
+  readingLevel: z.nativeEnum(UserReadingLevel).optional(),
   notificationSettings: z.record(z.boolean()).optional()
 });
 

@@ -19,9 +19,11 @@ import {
   ChapterGenerationRequest,
   EditorialFeedbackRequest,
   ResponseFormatOptions,
-  GenreType,
-  AudienceType
-} from './types';
+  ContentFilterLevelType,
+  ResponseFormatType,
+  AIFocusAreaType,
+} from '../types/ai.types';
+import { GenreType, PROJECT_GENRES, TARGET_AUDIENCES, TargetAudienceType, TargetLength, TargetLengthType } from '../types/project.types';
 
 import { createCharacterTemplate, expandCharacterTemplate } from './templates/character/create';
 import { extractCharacter, extractCharacterExpansion } from './parsers/extractCharacter';

@@ -1,4 +1,5 @@
 import { trpc } from '../utils/trpc';
+import { ConnectionType } from '../../../backend/src/types/object.types';
 
 export const useObjectService = () => {
   const utils = trpc.useContext();
@@ -94,6 +95,62 @@ export const useObjectService = () => {
     });
   };
 
+  // Add a timeline event to an object
+  const addTimelineEvent = () => {
+    return trpc.object.addTimelineEvent.useMutation({
+      onSuccess: (data) => {
+        // Invalidate specific queries to refetch data
+        utils.object.getAll.invalidate({ projectId: data.projectId });
+        utils.object.getById.invalidate({ projectId: data.projectId, objectId: data.id });
+      },
+    });
+  };
+
+  // Remove a timeline event from an object
+  const removeTimelineEvent = () => {
+    return trpc.object.removeTimelineEvent.useMutation({
+      onSuccess: (data) => {
+        // Invalidate specific queries to refetch data
+        utils.object.getAll.invalidate({ projectId: data.projectId });
+        utils.object.getById.invalidate({ projectId: data.projectId, objectId: data.id });
+      },
+    });
+  };
+
+  // Add a connection to an object
+  const addConnection = () => {
+    return trpc.object.addConnection.useMutation({
+      onSuccess: (data) => {
+        // Invalidate specific queries to refetch data
+        utils.object.getAll.invalidate({ projectId: data.projectId });
+        utils.object.getById.invalidate({ projectId: data.projectId, objectId: data.id });
+      },
+    });
+  };
+
+  // Remove a connection from an object
+  const removeConnection = () => {
+    return trpc.object.removeConnection.useMutation({
+      onSuccess: (data) => {
+        // Invalidate specific queries to refetch data
+        utils.object.getAll.invalidate({ projectId: data.projectId });
+        utils.object.getById.invalidate({ projectId: data.projectId, objectId: data.id });
+      },
+    });
+  };
+
+  // Get objects by connection type
+  const getObjectsByConnectionType = (projectId: string, connectionType: ConnectionType) => {
+    return trpc.object.getByConnectionType.useQuery({ projectId, connectionType }, {
+      // Keep data fresh for 5 minutes
+      staleTime: 5 * 60 * 1000,
+      // Cache data for 10 minutes
+      cacheTime: 10 * 60 * 1000,
+      // Enable this to only fetch when both parameters are available
+      enabled: !!projectId && !!connectionType,
+    });
+  };
+
   return {
     getAllObjects,
     getObject,
@@ -103,5 +160,11 @@ export const useObjectService = () => {
     getObjectsByOwner,
     getObjectsByLocation,
     searchObjects,
+    // New methods
+    addTimelineEvent,
+    removeTimelineEvent,
+    addConnection,
+    removeConnection,
+    getObjectsByConnectionType,
   };
 }; 

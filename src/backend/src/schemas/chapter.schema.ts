@@ -6,7 +6,8 @@
 
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
-
+import { CHAPTER_STATUSES } from '../types/chapter.types';
+import { aiGeneratedSchema } from '../schemas/ai.schema';
 // Helper function to validate ObjectId
 const objectIdSchema = z.string().refine(
   (id) => {
@@ -23,7 +24,7 @@ const objectIdSchema = z.string().refine(
 );
 
 // Schema for chapter status
-export const chapterStatusEnum = z.enum(['Draft', 'Revised', 'Final', 'Needs Review']);
+export const chapterStatusEnum = z.enum(CHAPTER_STATUSES);
 
 // Schema for edit history
 export const chapterEditSchema = z.object({
@@ -32,13 +33,13 @@ export const chapterEditSchema = z.object({
   changes: z.string()
 });
 
-// Schema for AI generation
-export const aiGeneratedSchema = z.object({
-  isGenerated: z.boolean().default(false),
-  generatedTimestamp: z.date().optional(),
-  prompt: z.string().optional(),
-  model: z.string().optional()
-});
+// // Schema for AI generation
+// export const aiGeneratedSchema = z.object({
+//   isGenerated: z.boolean().default(false),
+//   generatedTimestamp: z.date().optional(),
+//   prompt: z.string().optional(),
+//   model: z.string().optional()
+// });
 
 // Schema for creating a chapter
 export const createChapterSchema = z.object({
@@ -94,9 +95,6 @@ export const chapterSchema = createChapterSchema.extend({
 export const chapterListSchema = z.array(chapterSchema);
 
 // Types exported for use in router and other files
-export type ChapterStatus = z.infer<typeof chapterStatusEnum>;
-export type ChapterEdit = z.infer<typeof chapterEditSchema>;
-export type AiGenerated = z.infer<typeof aiGeneratedSchema>;
 export type CreateChapterInput = z.infer<typeof createChapterSchema>;
 export type UpdateChapterInput = z.infer<typeof updateChapterSchema>;
 export type UpdateChapterContentInput = z.infer<typeof updateChapterContentSchema>;
